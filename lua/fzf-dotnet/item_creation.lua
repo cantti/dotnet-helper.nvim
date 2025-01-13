@@ -1,6 +1,6 @@
 local M = {}
-local fs = require("fzf-lua-dotnet.fs")
-local csproj_parser = require("fzf-lua-dotnet.csproj_parser")
+local fs = require("fzf-dotnet.fs")
+local csproj_parser = require("fzf-dotnet.csproj_parser")
 
 local function file_exists(filepath)
   local f = io.open(filepath, "r")
@@ -57,13 +57,13 @@ local str_to_table = function(inputstr)
   return lines
 end
 
-function M.get_new_class_locations(path)
+local function get_new_class_locations(path)
   local function get_all_subdirs(dir_path, base)
     local res = {}
     local dirs = fs.get_dirs(dir_path)
     for _, dir in ipairs(dirs) do
       local dir_name = fs.get_file_name(dir)
-      if dir_name ~= "obj" and dir_name ~= "bin" then
+      if dir_name ~= "obj" and dir_name ~= "bin" and dir_name ~= ".git" then
         local entry = fs.join_paths(base, dir_name)
         table.insert(res, entry)
         local subdirs = get_all_subdirs(dir, entry)
@@ -81,7 +81,7 @@ end
 
 function M.new_class()
   local cwd = vim.fn.getcwd()
-  local locations = M.get_new_class_locations(cwd)
+  local locations = get_new_class_locations(cwd)
 
   require("fzf-lua").fzf_exec(locations, {
     winopts = {
@@ -89,6 +89,7 @@ function M.new_class()
     },
     actions = {
       ["default"] = function(selected, opts)
+        vim.print(opts)
         local location = selected[1]
         local class_name = vim.fn.input("Enter name: ")
         local file_name = class_name .. ".cs"
