@@ -15,3 +15,9 @@ Installation:
 },
 
 ```
+
+Usage:
+
+```
+:Fzfdotnet
+```
