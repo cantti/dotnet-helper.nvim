@@ -14,54 +14,86 @@ end
 
 local function get_namespace_for_file(file_path)
   local elements = {}
-
-  -- remove file name from path
-  file_path = fs.get_directory_path(file_path)
-  local csproj_path = ""
-
-  local function traverse(path)
-    local files_in_dir = fs.get_files_in_dir(path)
+  local csproj_path
+  local current_path = file_path
+  local max_level = 5
+  for i = 1, max_level do
+    current_path = fs.get_directory_path(current_path)
+    if current_path == "/" then
+      break
+    end
+    local files_in_dir = fs.get_files_in_dir(current_path)
     for _, file in ipairs(files_in_dir) do
-      if string.find(file, "csproj") then
+      if string.match(file:lower(), ".csproj$") then
         csproj_path = file
-        return
+        break
       end
     end
-    local dir_name = fs.get_file_name(path)
+    if csproj_path then
+      break
+    end
+    local dir_name = fs.get_file_name(current_path)
     table.insert(elements, 1, dir_name)
-    traverse(fs.get_directory_path(path))
   end
-
-  traverse(file_path)
-
-  local root_namespace = csproj_parser.get_root_namespace(csproj_path)
-
-  table.insert(elements, 1, root_namespace)
-
+  if csproj_path then
+    local root_namespace = csproj_parser.get_root_namespace(csproj_path)
+    table.insert(elements, 1, root_namespace)
+  else
+    vim.print("Project not found")
+  end
   local namespace = ""
-
   for _, element in ipairs(elements) do
     namespace = namespace .. "." .. element
   end
-
   namespace = string.gsub(namespace, "^.", "")
-
   return namespace
 end
 
+local str_to_table = function(inputstr)
+  local lines = {}
+  for s in inputstr:gmatch("[^\r\n]+") do
+    table.insert(lines, s)
+  end
+  return lines
+end
+
+function M.get_new_class_locations(path)
+  local function get_all_subdirs(dir_path, base)
+    local res = {}
+    local dirs = fs.get_dirs(dir_path)
+    for _, dir in ipairs(dirs) do
+      local dir_name = fs.get_file_name(dir)
+      if dir_name ~= "obj" and dir_name ~= "bin" then
+        local entry = fs.join_paths(base, dir_name)
+        table.insert(res, entry)
+        local subdirs = get_all_subdirs(dir, entry)
+        for _, subdir in ipairs(subdirs) do
+          table.insert(res, subdir)
+        end
+      end
+    end
+    return res
+  end
+  local locations = get_all_subdirs(path, "./")
+  table.insert(locations, 1, "./")
+  return locations
+end
+
 function M.new_class()
-  require("fzf-lua").fzf_exec("fd --color=never --type d --exclude bin --exclude obj", {
+  local cwd = vim.fn.getcwd()
+  local locations = M.get_new_class_locations(cwd)
+
+  require("fzf-lua").fzf_exec(locations, {
     winopts = {
       title = "Select folder",
     },
     actions = {
       ["default"] = function(selected, opts)
-        local directory = selected[1]
+        local location = selected[1]
         local class_name = vim.fn.input("Enter name: ")
         local file_name = class_name .. ".cs"
 
-        -- full abs path
-        local file_path = fs.join_paths(vim.fn.getcwd(), directory, file_name)
+        local file_path = fs.join_paths(cwd, location, file_name)
 
         local buf = vim.api.nvim_create_buf(true, false)
         vim.api.nvim_buf_set_name(buf, file_path)
@@ -69,8 +101,13 @@ function M.new_class()
         vim.api.nvim_set_current_buf(buf)
 
         local namespace = get_namespace_for_file(file_path)
+        if not namespace then
+          return
+        end
+
         local lines = {
           "namespace " .. namespace .. ";",
+          "",
           "public class " .. class_name,
           "{",
           "}",
