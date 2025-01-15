@@ -22,9 +22,8 @@ local function get_namespace_for_file(file_path)
     if current_path == "/" then
       break
     end
-    local files_in_dir = fs.get_files_in_dir(current_path)
-    for _, file in ipairs(files_in_dir) do
-      if string.match(file:lower(), ".csproj$") then
+    for _, file in ipairs(fs.get_files(current_path)) do
+      if fs.get_ext(file:lower()) == "csproj" then
         csproj_path = file
         break
       end
@@ -58,7 +57,7 @@ local str_to_table = function(inputstr)
 end
 
 local function get_new_class_locations(path)
-  local function get_all_subdirs(dir_path, base)
+  local function get_subdirs_recursive(dir_path, base)
     local res = {}
     local dirs = fs.get_dirs(dir_path)
     for _, dir in ipairs(dirs) do
@@ -66,7 +65,7 @@ local function get_new_class_locations(path)
       if dir_name ~= "obj" and dir_name ~= "bin" and dir_name ~= ".git" then
         local entry = fs.join_paths(base, dir_name)
         table.insert(res, entry)
-        local subdirs = get_all_subdirs(dir, entry)
+        local subdirs = get_subdirs_recursive(dir, entry)
         for _, subdir in ipairs(subdirs) do
           table.insert(res, subdir)
         end
@@ -74,7 +73,7 @@ local function get_new_class_locations(path)
     end
     return res
   end
-  local locations = get_all_subdirs(path, "./")
+  local locations = get_subdirs_recursive(path, "./")
   table.insert(locations, 1, "./")
   return locations
 end
@@ -89,7 +88,6 @@ function M.new_class()
     },
     actions = {
       ["default"] = function(selected, opts)
-        vim.print(opts)
         local location = selected[1]
         local class_name = vim.fn.input("Enter name: ")
         local file_name = class_name .. ".cs"

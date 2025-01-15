@@ -2,6 +2,7 @@ local M = {}
 
 local item_creation = require("fzf-dotnet.item_creation")
 local command_chooser = require("fzf-dotnet.command_chooser")
+local build = require("fzf-dotnet.build")
 
 local fzfdotnet_subcommands = {
   commands = {
@@ -9,7 +10,7 @@ local fzfdotnet_subcommands = {
       command_chooser.show()
     end,
   },
-  create_new_class = {
+  newclass = {
     impl = function(args, opts)
       item_creation.new_class()
     end,
@@ -31,12 +32,21 @@ local fzfdotnet_subcommands = {
     end,
     -- ...
   },
+  build = {
+    impl = function(args, opts)
+      build.build()
+    end,
+  },
+  buildsln = {
+    impl = function(args, opts)
+      build.build_solution()
+    end,
+  },
 }
 
 -- main command :Fzfdotnet
 local function fzf_dotnet_cmd(opts)
   local fargs = opts.fargs
-  vim.print(fargs)
   if vim.tbl_isempty(fargs) then
     command_chooser.show()
     return

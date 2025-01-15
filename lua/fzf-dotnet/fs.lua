@@ -30,6 +30,10 @@ function M.get_file_name(path)
   return string.match(path, "/([^/]+)$")
 end
 
+function M.get_ext(path)
+  return string.match(path, "%.([^%.]+)$") or ""
+end
+
 function M.join_paths(...)
   local final_path = ""
   for i, element in ipairs({ ... }) do
@@ -52,7 +56,7 @@ function M.join_paths(...)
   return final_path
 end
 
-function M.get_files_in_dir(dir)
+function M.get_files(dir)
   local files = {}
   local handle = vim.loop.fs_scandir(dir)
   if handle then
@@ -85,64 +89,6 @@ function M.get_dirs(dir_path)
     end
   end
   return dirs
-end
-
-
-
-function M.get_all_subdirs(dir_path, base)
-  local dirs = {}
-  local handle = vim.loop.fs_scandir(dir_path)
-  if handle then
-    while true do
-      local name, type = vim.loop.fs_scandir_next(handle)
-      if not name then
-        break
-      end
-      if type == "directory" and name ~= "obj" and name ~= "bin" then
-        local new_val = M.join_paths(base, name)
-        table.insert(dirs, new_val)
-        local subdirs = M.get_all_subdirs(M.join_paths(dir_path, name), new_val)
-        for _, subdir in ipairs(subdirs) do
-          table.insert(dirs, subdir)
-        end
-      end
-    end
-  end
-  return dirs
-end
-
-
-function M.get_all_subdirs(dir_path, base)
-  local dirs = {}
-  local handle = vim.loop.fs_scandir(dir_path)
-  if handle then
-    while true do
-      local name, type = vim.loop.fs_scandir_next(handle)
-      if not name then
-        break
-      end
-      if type == "directory" and name ~= "obj" and name ~= "bin" then
-        local new_val = M.join_paths(base, name)
-        table.insert(dirs, new_val)
-        local subdirs = M.get_all_subdirs(M.join_paths(dir_path, name), new_val)
-        for _, subdir in ipairs(subdirs) do
-          table.insert(dirs, subdir)
-        end
-      end
-    end
-  end
-  return dirs
-end
-
-function M.create_file(filename)
-  local file = io.open(filename, "w") -- Open in write mode
-  if file then
-    file:write("") -- Optionally write some content
-    file:close()
-    print("File created: " .. filename)
-  else
-    print("Failed to create file: " .. filename)
-  end
 end
 
 return M
