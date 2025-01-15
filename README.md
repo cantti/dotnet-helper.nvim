@@ -12,6 +12,7 @@ Installation:
 {
   dir = "cantti/fzf-dotnet.nvim",
   opts = {},
+  dependencies = { "ibhagwan/fzf-lua" },
 },
 
 ```
