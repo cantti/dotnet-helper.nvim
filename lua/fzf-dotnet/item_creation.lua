@@ -15,30 +15,33 @@ end
 local function get_namespace_for_file(file_path)
   local elements = {}
   local csproj_path
-  local current_path = file_path
+  local curr_path = file_path
   local max_level = 5
   for i = 1, max_level do
-    current_path = fs.get_directory_path(current_path)
-    if current_path == "/" then
-      break
-    end
-    for _, file in ipairs(fs.get_files(current_path)) do
+    curr_path = fs.get_directory_path(curr_path)
+
+    for _, file in ipairs(fs.get_files(curr_path)) do
       if fs.get_ext(file:lower()) == "csproj" then
         csproj_path = file
         break
       end
     end
+
     if csproj_path then
       break
     end
-    local dir_name = fs.get_file_name(current_path)
-    table.insert(elements, 1, dir_name)
+
+    -- insert dir name as element of namespace
+    table.insert(elements, 1, fs.get_file_name(curr_path))
+
+    -- do not go above root and pwd
+    if curr_path == "/" or curr_path == vim.fn.getcwd() then
+      break
+    end
   end
   if csproj_path then
     local root_namespace = csproj_parser.get_root_namespace(csproj_path)
     table.insert(elements, 1, root_namespace)
-  else
-    vim.print("Project not found")
   end
   local namespace = ""
   for _, element in ipairs(elements) do
