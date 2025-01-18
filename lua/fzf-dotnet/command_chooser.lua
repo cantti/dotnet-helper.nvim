@@ -25,6 +25,14 @@ local options = {
     label = "Clean: project or solution",
     cmd = require("fzf-dotnet.clean").clean_project_or_solution,
   },
+  {
+    label = "Secrets: edit",
+    cmd = require("fzf-dotnet.secrets").edit_secrets,
+  },
+  {
+    label = "Secrets: list",
+    cmd = require("fzf-dotnet.secrets").list_secrets,
+  },
 }
 
 local function get_labels()
@@ -36,7 +44,6 @@ local function get_labels()
 end
 
 local function get_cmd(label)
-  local labels = {}
   for _, option in ipairs(options) do
     if option.label == label then
       return option.cmd
@@ -50,7 +57,7 @@ function M.show()
       title = "Fzfdotnet commands",
     },
     actions = {
-      ["default"] = function(selected, opts)
+      ["default"] = function(selected)
         get_cmd(selected[1])()
       end,
     },

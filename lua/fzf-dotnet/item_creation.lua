@@ -2,16 +2,6 @@ local M = {}
 local fs = require("fzf-dotnet.fs")
 local utils = require("fzf-dotnet.utils")
 
-local function file_exists(filepath)
-  local f = io.open(filepath, "r")
-  if f then
-    f:close()
-    return true
-  else
-    return false
-  end
-end
-
 local function get_namespace_for_file(file_path)
   local elements = {}
   local csproj_path
@@ -49,14 +39,6 @@ local function get_namespace_for_file(file_path)
   end
   namespace = string.gsub(namespace, "^.", "")
   return namespace
-end
-
-local str_to_table = function(inputstr)
-  local lines = {}
-  for s in inputstr:gmatch("[^\r\n]+") do
-    table.insert(lines, s)
-  end
-  return lines
 end
 
 local function get_new_class_locations(path)
@@ -130,7 +112,7 @@ function M.new_api_controller()
       title = "Select folder",
     },
     actions = {
-      ["default"] = function(selected, opts)
+      ["default"] = function(selected)
         local location = selected[1]
         local class_name = vim.fn.input("Enter name: ")
         local file_name = class_name .. ".cs"

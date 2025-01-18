@@ -2,14 +2,14 @@ local fs = require("fzf-dotnet.fs")
 
 local M = {}
 
-function M.get_projects(path)
+function M.get_projects(path, include_solution)
   local function get_targets_recursive(dir_path, base)
     local result = {}
     local files = fs.get_files(dir_path)
     for _, file in ipairs(files) do
       local filename = fs.get_file_name(file)
       local ext = fs.get_ext(filename:lower())
-      if ext == "csproj" or ext == "sln" then
+      if ext == "csproj" or (include_solution and ext == "sln") then
         table.insert(result, fs.join_paths(base, filename))
       end
     end
@@ -29,7 +29,7 @@ end
 
 function M.get_solution(path)
   local solution
-  for _, target in ipairs(M.get_projects(path)) do
+  for _, target in ipairs(M.get_projects(path, true)) do
     local ext = fs.get_ext(target:lower())
     if ext == "sln" then
       solution = target

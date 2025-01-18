@@ -18,7 +18,7 @@ function M.get_directory_path(path)
   if string.match(path, "^/[^/]+$") then
     return "/"
   end
-  -- return everthing before /
+  -- return everything before /
   return string.match(path, "^(.+)/[^/]+$")
 end
 
@@ -89,6 +89,16 @@ function M.get_dirs(dir_path)
     end
   end
   return dirs
+end
+
+function M.file_exists(path)
+  local f = io.open(path, "r")
+  if f then
+    f:close()
+    return true
+  else
+    return false
+  end
 end
 
 return M
