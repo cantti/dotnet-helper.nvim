@@ -1,6 +1,6 @@
 local M = {}
 local fs = require("fzf-dotnet.fs")
-local csproj_parser = require("fzf-dotnet.csproj_parser")
+local utils = require("fzf-dotnet.utils")
 
 local function file_exists(filepath)
   local f = io.open(filepath, "r")
@@ -40,7 +40,7 @@ local function get_namespace_for_file(file_path)
     end
   end
   if csproj_path then
-    local root_namespace = csproj_parser.get_root_namespace(csproj_path)
+    local root_namespace = utils.get_root_namespace(csproj_path)
     table.insert(elements, 1, root_namespace)
   end
   local namespace = ""
@@ -111,6 +111,51 @@ function M.new_class()
           "namespace " .. namespace .. ";",
           "",
           "public class " .. class_name,
+          "{",
+          "}",
+        }
+        vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+        -- vim.cmd("write")
+      end,
+    },
+  })
+end
+
+function M.new_api_controller()
+  local cwd = vim.fn.getcwd()
+  local locations = get_new_class_locations(cwd)
+
+  require("fzf-lua").fzf_exec(locations, {
+    winopts = {
+      title = "Select folder",
+    },
+    actions = {
+      ["default"] = function(selected, opts)
+        local location = selected[1]
+        local class_name = vim.fn.input("Enter name: ")
+        local file_name = class_name .. ".cs"
+
+        local file_path = fs.join_paths(cwd, location, file_name)
+
+        local buf = vim.api.nvim_create_buf(true, false)
+        vim.api.nvim_buf_set_name(buf, file_path)
+        vim.api.nvim_buf_set_option(buf, "filetype", "cs")
+        vim.api.nvim_set_current_buf(buf)
+
+        local namespace = get_namespace_for_file(file_path)
+        if not namespace then
+          return
+        end
+
+        local lines = {
+          "using Microsoft.AspNetCore.Http;",
+          "using Microsoft.AspNetCore.Mvc;",
+          "",
+          "namespace " .. namespace .. ";",
+          "",
+          '[Route("api/[controller]")]',
+          "[ApiController]",
+          "public class " .. class_name .. " : ControllerBase",
           "{",
           "}",
         }

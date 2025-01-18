@@ -3,7 +3,7 @@ local utils = require("fzf-dotnet.utils")
 
 local M = {}
 
-function M.build_project_or_solution()
+function M.clean_project_or_solution()
   local targets = utils.get_projects(vim.fn.getcwd())
   require("fzf-lua").fzf_exec(targets, {
     winopts = {
@@ -11,16 +11,16 @@ function M.build_project_or_solution()
     },
     actions = {
       ["default"] = function(selected, opts)
-        vim.cmd("! dotnet build " .. selected[1])
+        vim.cmd("! dotnet clean " .. selected[1])
       end,
     },
   })
 end
 
-function M.build_solution()
+function M.clean_solution()
   local solution = utils.get_solution(vim.fn.getcwd())
   if solution then
-    vim.cmd("! dotnet build " .. solution)
+    vim.cmd("! dotnet clean " .. solution)
   end
 end
 

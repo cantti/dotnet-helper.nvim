@@ -6,12 +6,24 @@ local options = {
     cmd = require("fzf-dotnet.item_creation").new_class,
   },
   {
+    label = "New: C# Api Controller",
+    cmd = require("fzf-dotnet.item_creation").new_api_controller,
+  },
+  {
     label = "Build: solution",
     cmd = require("fzf-dotnet.build").build_solution,
   },
   {
     label = "Build: project or solution",
     cmd = require("fzf-dotnet.build").build_project_or_solution,
+  },
+  {
+    label = "Clean: solution",
+    cmd = require("fzf-dotnet.clean").clean_solution,
+  },
+  {
+    label = "Clean: project or solution",
+    cmd = require("fzf-dotnet.clean").clean_project_or_solution,
   },
 }
 
