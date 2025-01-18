@@ -1,6 +1,6 @@
 # Fzf-dotnet.nvim
 
-Set of usefull commands for dotnet development. Only unix filesystems supported.
+Set of useful commands for dotnet development. Only unix filesystems supported.
 
 <img width="655" alt="image" src="https://github.com/user-attachments/assets/16478ee0-cee0-490f-8268-37254a75192e" />
 
@@ -27,11 +27,17 @@ Uses https://github.com/ibhagwan/fzf-lua
 # create new c# class
 :Fzfdotnet newclass
 
-# build solution (finds solution automatically)
-:Fzfdotnet buildsln
+# build 
+:Fzfdotnet build
 
 # build project or solution
-:Fzfdotnet build
+:Fzfdotnet buildproject
+
+# edit secrets.json
+:Fzfdotnet secretsedit
+
+# show secrets
+:Fzfdotnet secretslist
 ```
 
 ## Alternatives

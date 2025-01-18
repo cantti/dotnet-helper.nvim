@@ -35,12 +35,12 @@ local fzfdotnet_subcommands = {
   },
   build = {
     impl = function(args, opts)
-      build.build_project_or_solution()
+      build.build()
     end,
   },
-  buildsln = {
+  buildproject = {
     impl = function(args, opts)
-      build.build_solution()
+      build.build_project_or_solution()
     end,
   },
   secretslist = {
