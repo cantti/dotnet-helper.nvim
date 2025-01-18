@@ -2,11 +2,11 @@
 
 Set of usefull commands for dotnet development. Only unix filesystems supported.
 
-<img width="968" alt="Screenshot 2025-01-18 at 9 41 39 PM" src="https://github.com/user-attachments/assets/b359edcb-1f22-4e83-81fc-ba0b64beffc0" />
+<img width="655" alt="image" src="https://github.com/user-attachments/assets/16478ee0-cee0-490f-8268-37254a75192e" />
 
 Uses https://github.com/ibhagwan/fzf-lua
 
-Installation:
+## Installation:
 
 ```lua
 {
@@ -17,7 +17,7 @@ Installation:
 
 ```
 
-Usage:
+## Usage
 
 
 ```sh
@@ -33,3 +33,8 @@ Usage:
 # build project or solution
 :Fzfdotnet build
 ```
+
+## Alternatives
+
+- https://github.com/GustavEikaas/easy-dotnet.nvim
+- https://github.com/MoaidHathot/dotnet.nvim
