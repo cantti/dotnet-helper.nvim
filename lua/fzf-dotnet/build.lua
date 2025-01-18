@@ -16,11 +16,8 @@ function M.build_project_or_solution()
   })
 end
 
-function M.build_solution()
-  local solution = utils.get_solution(vim.fn.getcwd())
-  if solution then
-    vim.cmd("! dotnet build " .. solution)
-  end
+function M.build()
+  vim.cmd("! dotnet build")
 end
 
 return M

@@ -16,11 +16,8 @@ function M.clean_project_or_solution()
   })
 end
 
-function M.clean_solution()
-  local solution = utils.get_solution(vim.fn.getcwd())
-  if solution then
-    vim.cmd("! dotnet clean " .. solution)
-  end
+function M.clean()
+  vim.cmd("! dotnet clean")
 end
 
 return M

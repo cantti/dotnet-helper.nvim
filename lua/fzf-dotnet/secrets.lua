@@ -54,24 +54,20 @@ end
 
 local function list_secrets(project_path)
   local secrets = get_secrets_tbl(project_path)
-  local keys = {}
-  for _, secret in ipairs(secrets) do
-    table.insert(keys, secret.key)
-  end
+  local keys = vim.tbl_map(function(x)
+    return x.key
+  end, secrets)
   require("fzf-lua").fzf_exec(keys, {
     winopts = {
       title = "Select secret",
     },
     fzf_opts = {
       ["--preview"] = function(selected)
-        local contents = {}
-        for _, secret in ipairs(secrets) do
-          if secret.key == selected[1] then
-            table.insert(contents, secret.value)
-            break
-          end
-        end
-        return contents
+        return vim.tbl_map(function(s)
+          return vim.tbl_filter(function(x)
+            return x.key == s
+          end, secrets)[1].value
+        end, selected)
       end,
     },
     actions = {
@@ -85,30 +81,38 @@ end
 
 function M.edit_secrets()
   local targets = utils.get_projects(vim.fn.getcwd(), false)
-  require("fzf-lua").fzf_exec(targets, {
-    winopts = {
-      title = "Select project or solution",
-    },
-    actions = {
-      ["default"] = function(selected, opts)
-        open_secrets_json(selected[1])
-      end,
-    },
-  })
+  if vim.tbl_count(targets) == 1 then
+    list_secrets(targets[1])
+  else
+    require("fzf-lua").fzf_exec(targets, {
+      winopts = {
+        title = "Select project or solution",
+      },
+      actions = {
+        ["default"] = function(selected, opts)
+          open_secrets_json(selected[1])
+        end,
+      },
+    })
+  end
 end
 
 function M.list_secrets()
   local targets = utils.get_projects(vim.fn.getcwd(), false)
-  require("fzf-lua").fzf_exec(targets, {
-    winopts = {
-      title = "Select project or solution",
-    },
-    actions = {
-      ["default"] = function(selected, opts)
-        list_secrets(selected[1])
-      end,
-    },
-  })
+  if vim.tbl_count(targets) == 1 then
+    list_secrets(targets[1])
+  else
+    require("fzf-lua").fzf_exec(targets, {
+      winopts = {
+        title = "Select project or solution",
+      },
+      actions = {
+        ["default"] = function(selected, opts)
+          list_secrets(selected[1])
+        end,
+      },
+    })
+  end
 end
 
 return M
