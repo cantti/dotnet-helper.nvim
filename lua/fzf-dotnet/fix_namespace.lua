@@ -31,7 +31,6 @@ function M.fix_namespace()
       ["default"] = function(selected, opts)
         local chosen_dir = selected[1]
         local files = utils.get_file_options(chosen_dir, { "cs" })
-        vim.print(files)
 
         local updated_files = {}
 
