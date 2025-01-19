@@ -4,65 +4,45 @@ function M.remove_trailing_slah(path)
   return string.gsub(path, "/+$", "")
 end
 
--- get parent dir full path
-function M.get_directory_path(path)
-  -- if no slashes return ""
-  if not string.match(path, "/") then
-    return ""
-  end
-  -- if ends on slash return ""
-  if string.match(path, "/$") then
-    return ""
-  end
-  -- if in / return /
-  if string.match(path, "^/[^/]+$") then
-    return "/"
-  end
-  -- return everything before /
-  return string.match(path, "^(.+)/[^/]+$")
+function M.get_parent_path(path)
+  return vim.fn.fnamemodify(path, ":h")
 end
 
 function M.get_file_name(path)
-  -- if no slashes, return path
-  if not string.match(path, "/") then
-    return path
-  end
-  return string.match(path, "/([^/]+)$")
+  return vim.fn.fnamemodify(path, ":t")
 end
 
 function M.get_ext(path)
-  return string.match(path, "%.([^%.]+)$") or ""
+  return vim.fn.fnamemodify(path, ":e")
 end
 
-function M.join_paths(...)
-  local final_path = ""
-  for i, element in ipairs({ ... }) do
-    -- replace slashes
-    element = string.gsub(element, "\\", "/")
-
-    -- remove ./ if not the first element
-    if i > 1 then
-      element = string.gsub(element, "^%./", "")
-    end
-
-    -- remove trailing slash
-    element = string.gsub(element, "/$", "")
-
-    if element ~= "" then
-      final_path = final_path .. "/" .. element
-    end
+function M.join_paths(paths, normalize)
+  if normalize == nil then
+    normalize = true
   end
-  final_path = string.sub(final_path, 2)
-  return final_path
+  local path = table.concat(paths, "/")
+  if normalize then
+    path = vim.fs.normalize(path)
+  end
+  return path
 end
 
 function M.abs_path(path)
-  return M.join_paths(vim.fn.getcwd(), path)
+  -- fnamemodify gives unpredictable results if file does not exist
+  return M.join_paths({ vim.fn.getcwd(), path })
 end
 
-function M.get_files(dir)
+function M.normalize(path)
+  return vim.fs.normalize(path)
+end
+
+function M.cwd()
+  return vim.fn.getcwd()
+end
+
+function M.get_files(path)
   local files = {}
-  local handle = vim.loop.fs_scandir(dir)
+  local handle = vim.loop.fs_scandir(path)
   if handle then
     while true do
       local name, type = vim.loop.fs_scandir_next(handle)
@@ -70,17 +50,16 @@ function M.get_files(dir)
         break
       end
       if type == "file" then
-        local full_path = dir .. "/" .. name
-        table.insert(files, full_path)
+        table.insert(files, M.join_paths({ path, name }))
       end
     end
   end
   return files
 end
 
-function M.get_dirs(dir_path)
+function M.get_dirs(path)
   local dirs = {}
-  local handle = vim.loop.fs_scandir(dir_path)
+  local handle = vim.loop.fs_scandir(path)
   if handle then
     while true do
       local name, type = vim.loop.fs_scandir_next(handle)
@@ -88,7 +67,7 @@ function M.get_dirs(dir_path)
         break
       end
       if type == "directory" then
-        table.insert(dirs, M.join_paths(dir_path, name))
+        table.insert(dirs, M.join_paths({ path, name }))
       end
     end
   end

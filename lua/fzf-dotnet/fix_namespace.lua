@@ -1,5 +1,4 @@
 local utils = require("fzf-dotnet.utils")
-local fs = require("fzf-dotnet.fs")
 
 local M = {}
 
@@ -22,7 +21,7 @@ local function write_to_file(path, content)
 end
 
 function M.fix_namespace()
-  local locations = utils.get_dirs()
+  local locations = utils.get_dir_options(".")
 
   require("fzf-lua").fzf_exec(locations, {
     winopts = {
@@ -30,17 +29,19 @@ function M.fix_namespace()
     },
     actions = {
       ["default"] = function(selected, opts)
-        local files = utils.get_files(fs.abs_path(selected[1]), { "cs" })
+        local chosen_dir = selected[1]
+        local files = utils.get_file_options(chosen_dir, { "cs" })
+        vim.print(files)
+
         local updated_files = {}
 
-        for _, file in ipairs(files) do
-          local file_path = fs.join_paths(fs.abs_path(selected[1]), file)
+        for _, file_path in ipairs(files) do
           local new_namespace = utils.get_namespace_for_file(file_path)
           local content = readAll(file_path)
           local new_content = string.gsub(content, "(namespace) .-([;%s])", "%1 " .. new_namespace .. "%2")
           write_to_file(file_path, new_content)
           if content ~= new_content then
-            table.insert(updated_files, file)
+            table.insert(updated_files, file_path)
           end
         end
         -- update buffers

@@ -82,7 +82,7 @@ end
 function M.edit_secrets()
   local targets = utils.get_projects(false)
   if vim.tbl_count(targets) == 1 then
-    list_secrets(targets[1])
+    open_secrets_json(targets[1])
   else
     require("fzf-lua").fzf_exec(targets, {
       winopts = {

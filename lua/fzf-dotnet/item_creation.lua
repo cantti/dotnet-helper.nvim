@@ -3,7 +3,7 @@ local fs = require("fzf-dotnet.fs")
 local utils = require("fzf-dotnet.utils")
 
 function M.new_class()
-  local locations = utils.get_dirs()
+  local locations = utils.get_dir_options(".")
 
   require("fzf-lua").fzf_exec(locations, {
     winopts = {
@@ -15,7 +15,7 @@ function M.new_class()
         local class_name = vim.fn.input("Enter name: ")
         local file_name = class_name .. ".cs"
 
-        local file_path = fs.join_paths(vim.fn.getcwd(), location, file_name)
+        local file_path = fs.join_paths({ vim.fn.getcwd(), location, file_name })
 
         local buf = vim.api.nvim_create_buf(true, false)
         vim.api.nvim_buf_set_name(buf, file_path)
@@ -42,7 +42,7 @@ function M.new_class()
 end
 
 function M.new_api_controller()
-  local locations = utils.get_dirs()
+  local locations = utils.get_dir_options(".")
 
   require("fzf-lua").fzf_exec(locations, {
     winopts = {
@@ -54,7 +54,7 @@ function M.new_api_controller()
         local class_name = vim.fn.input("Enter name: ")
         local file_name = class_name .. ".cs"
 
-        local file_path = fs.join_paths(vim.fn.getcwd(), location, file_name)
+        local file_path = fs.join_paths({ vim.fn.getcwd(), location, file_name })
 
         local buf = vim.api.nvim_create_buf(true, false)
         vim.api.nvim_buf_set_name(buf, file_path)

@@ -2,24 +2,14 @@ local fs = require("fzf-dotnet.fs")
 
 local M = {}
 
+local exclude_dirs = { "obj", "bin", ".git" }
+
 function M.get_projects(include_solution)
   local valid_ext = { "csproj" }
   if include_solution then
     table.insert(valid_ext, "sln")
   end
-  return M.get_files(vim.fn.getcwd(), valid_ext)
-end
-
-function M.get_solution()
-  local solution
-  for _, target in ipairs(M.get_projects(true)) do
-    local ext = fs.get_ext(target:lower())
-    if ext == "sln" then
-      solution = target
-      break
-    end
-  end
-  return solution
+  return M.get_file_options(".", valid_ext)
 end
 
 function M.get_namespace_for_file(file_path)
@@ -27,8 +17,8 @@ function M.get_namespace_for_file(file_path)
   local csproj_path
   local curr_path = file_path
   local max_level = 5
-  for i = 1, max_level do
-    curr_path = fs.get_directory_path(curr_path)
+  for _ = 1, max_level do
+    curr_path = fs.get_parent_path(curr_path)
 
     for _, file in ipairs(fs.get_files(curr_path)) do
       if fs.get_ext(file:lower()) == "csproj" then
@@ -72,55 +62,38 @@ function M.get_root_namespace(path)
   return namespace
 end
 
-function M.get_dirs()
-  local function get_dirs_recursive(dir_path, base)
-    local res = {}
-    local dirs = fs.get_dirs(dir_path)
-    for _, dir in ipairs(dirs) do
-      local dir_name = fs.get_file_name(dir)
-      if dir_name ~= "obj" and dir_name ~= "bin" and dir_name ~= ".git" then
-        local entry = fs.join_paths(base, dir_name)
-        table.insert(res, entry)
-        local subdirs = get_dirs_recursive(dir, entry)
-        for _, subdir in ipairs(subdirs) do
-          table.insert(res, subdir)
-        end
+---Get list of valid project dirs for fzf
+function M.get_dir_options(path)
+  local result = { path }
+  for _, dir_path in ipairs(fs.get_dirs(path)) do
+    if not vim.tbl_contains(exclude_dirs, fs.get_file_name(dir_path)) then
+      for _, subdir in ipairs(M.get_dir_options(dir_path)) do
+        table.insert(result, subdir)
       end
     end
-    return res
   end
-  local locations = get_dirs_recursive(vim.fn.getcwd(), "./")
-  table.insert(locations, 1, "./")
-  return locations
+  return result
 end
 
-function M.get_files(path, valid_ext)
+---Get list of valid project files in path for fzf
+function M.get_file_options(path, valid_ext)
   valid_ext = valid_ext or {}
-  local function get_files_rec(dir_path, base)
-    local result = {}
-    local files = fs.get_files(dir_path)
-    for _, file in ipairs(files) do
-      local filename = fs.get_file_name(file)
-      local ext = fs.get_ext(filename:lower())
-      if vim.tbl_isempty(valid_ext) or vim.tbl_contains(valid_ext, ext) then
-        table.insert(result, fs.join_paths(base, filename))
-      end
+  local result = {}
+  local files = fs.get_files(path)
+  for _, file in ipairs(files) do
+    local ext = fs.get_ext(file:lower())
+    if vim.tbl_isempty(valid_ext) or vim.tbl_contains(valid_ext, ext) then
+      table.insert(result, file)
     end
-    local dirs = fs.get_dirs(dir_path)
-    for _, dir in ipairs(dirs) do
-      local dir_name = fs.get_file_name(dir)
-      if dir_name ~= "obj" and dir_name ~= "bin" and dir_name ~= ".git" then
-        local dirname = fs.get_file_name(dir)
-        local sub_results = get_files_rec(dir, fs.join_paths(base, dirname))
-        for _, sub_result in ipairs(sub_results) do
-          table.insert(result, sub_result)
-        end
-      end
-    end
-    return result
   end
-  local locations = get_files_rec(path, "./")
-  return locations
+  for _, dir_path in ipairs(fs.get_dirs(path)) do
+    if not vim.tbl_contains(exclude_dirs, fs.get_file_name(dir_path)) then
+      for _, subresult in ipairs(M.get_file_options(dir_path, valid_ext)) do
+        table.insert(result, subresult)
+      end
+    end
+  end
+  return result
 end
 
 return M
