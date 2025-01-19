@@ -56,6 +56,10 @@ function M.join_paths(...)
   return final_path
 end
 
+function M.abs_path(path)
+  return M.join_paths(vim.fn.getcwd(), path)
+end
+
 function M.get_files(dir)
   local files = {}
   local handle = vim.loop.fs_scandir(dir)

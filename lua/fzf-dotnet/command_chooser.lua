@@ -33,6 +33,10 @@ local options = {
     label = "Secrets: list",
     cmd = require("fzf-dotnet.secrets").list_secrets,
   },
+  {
+    label = "Fix namespace",
+    cmd = require("fzf-dotnet.fix_namespace").fix_namespace,
+  },
 }
 
 local function get_labels()

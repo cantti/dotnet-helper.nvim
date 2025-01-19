@@ -80,7 +80,7 @@ local function list_secrets(project_path)
 end
 
 function M.edit_secrets()
-  local targets = utils.get_projects(vim.fn.getcwd(), false)
+  local targets = utils.get_projects(false)
   if vim.tbl_count(targets) == 1 then
     list_secrets(targets[1])
   else
@@ -98,7 +98,7 @@ function M.edit_secrets()
 end
 
 function M.list_secrets()
-  local targets = utils.get_projects(vim.fn.getcwd(), false)
+  local targets = utils.get_projects(false)
   if vim.tbl_count(targets) == 1 then
     list_secrets(targets[1])
   else

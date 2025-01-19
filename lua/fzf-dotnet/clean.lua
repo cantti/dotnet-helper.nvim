@@ -3,7 +3,7 @@ local utils = require("fzf-dotnet.utils")
 local M = {}
 
 function M.clean_project_or_solution()
-  local targets = utils.get_projects(vim.fn.getcwd(), true)
+  local targets = utils.get_projects(true)
   require("fzf-lua").fzf_exec(targets, {
     winopts = {
       title = "Select project or solution",
