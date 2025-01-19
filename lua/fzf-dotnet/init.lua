@@ -4,6 +4,7 @@ local item_creation = require("fzf-dotnet.item_creation")
 local command_chooser = require("fzf-dotnet.command_chooser")
 local build = require("fzf-dotnet.build")
 local secrets = require("fzf-dotnet.secrets")
+local run = require("fzf-dotnet.run")
 
 local fzfdotnet_subcommands = {
   commands = {
@@ -41,6 +42,11 @@ local fzfdotnet_subcommands = {
   buildproject = {
     impl = function(args, opts)
       build.build_project_or_solution()
+    end,
+  },
+  runproject = {
+    impl = function(args, opts)
+      run.run_project()
     end,
   },
   secretslist = {

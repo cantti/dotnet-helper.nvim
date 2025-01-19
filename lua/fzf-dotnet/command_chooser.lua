@@ -18,6 +18,10 @@ local options = {
     cmd = require("fzf-dotnet.build").build_project_or_solution,
   },
   {
+    label = "Run: project",
+    cmd = require("fzf-dotnet.run").run_project,
+  },
+  {
     label = "Clean",
     cmd = require("fzf-dotnet.clean").clean,
   },
