@@ -43,24 +43,18 @@ local options = {
   },
 }
 
-local function get_labels()
-  local labels = {}
-  for _, option in ipairs(options) do
-    table.insert(labels, option.label)
-  end
-  return labels
-end
+local labels = vim.tbl_map(function(x)
+  return x.label
+end, options)
 
 local function get_cmd(label)
-  for _, option in ipairs(options) do
-    if option.label == label then
-      return option.cmd
-    end
-  end
+  return vim.tbl_filter(function(x)
+    return x.label == label
+  end, options)[1].cmd
 end
 
 function M.show()
-  require("fzf-lua").fzf_exec(get_labels(), {
+  require("fzf-lua").fzf_exec(labels, {
     winopts = {
       title = "Fzfdotnet commands",
     },
