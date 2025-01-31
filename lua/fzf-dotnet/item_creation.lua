@@ -2,86 +2,46 @@ local M = {}
 local fs = require("fzf-dotnet.fs")
 local utils = require("fzf-dotnet.utils")
 
-function M.new_class()
-  local locations = utils.get_dir_options(".")
+local function write(lines)
+  local fpath = fs.current_file_path()
+  local replacements = {
+    namespace = utils.get_namespace_for_file(fpath),
+    classname = fs.get_file_name_without_ext(fpath),
+  }
+  for i, _ in ipairs(lines) do
+    for key, val in pairs(replacements) do
+      lines[i] = string.gsub(lines[i], "%%" .. key .. "%%", val)
+    end
+  end
+  vim.api.nvim_put(lines, "c", true, true)
+end
 
-  require("fzf-lua").fzf_exec(locations, {
-    winopts = {
-      title = "Select folder",
-    },
-    actions = {
-      ["default"] = function(selected, opts)
-        local location = selected[1]
-        local class_name = vim.fn.input("Enter name: ")
-        local file_name = class_name .. ".cs"
-
-        local file_path = fs.join_paths({ vim.fn.getcwd(), location, file_name })
-
-        local buf = vim.api.nvim_create_buf(true, false)
-        vim.api.nvim_buf_set_name(buf, file_path)
-        vim.api.nvim_buf_set_option(buf, "filetype", "cs")
-        vim.api.nvim_set_current_buf(buf)
-
-        local namespace = utils.get_namespace_for_file(file_path)
-        if not namespace then
-          return
-        end
-
-        local lines = {
-          "namespace " .. namespace .. ";",
-          "",
-          "public class " .. class_name,
-          "{",
-          "}",
-        }
-        vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
-        -- vim.cmd("write")
-      end,
-    },
+function M.write_class(opts)
+  opts = opts or {}
+  opts.file_ns = opts.file_ns ~= nil and opts.file_ns or true
+  write({
+    "namespace %namespace%;",
+    "",
+    "public class %classname%",
+    "{",
+    "}",
   })
 end
 
-function M.new_api_controller()
-  local locations = utils.get_dir_options(".")
-
-  require("fzf-lua").fzf_exec(locations, {
-    winopts = {
-      title = "Select folder",
-    },
-    actions = {
-      ["default"] = function(selected)
-        local location = selected[1]
-        local class_name = vim.fn.input("Enter name: ")
-        local file_name = class_name .. ".cs"
-
-        local file_path = fs.join_paths({ vim.fn.getcwd(), location, file_name })
-
-        local buf = vim.api.nvim_create_buf(true, false)
-        vim.api.nvim_buf_set_name(buf, file_path)
-        vim.api.nvim_buf_set_option(buf, "filetype", "cs")
-        vim.api.nvim_set_current_buf(buf)
-
-        local namespace = utils.get_namespace_for_file(file_path)
-        if not namespace then
-          return
-        end
-
-        local lines = {
-          "using Microsoft.AspNetCore.Http;",
-          "using Microsoft.AspNetCore.Mvc;",
-          "",
-          "namespace " .. namespace .. ";",
-          "",
-          '[Route("api/[controller]")]',
-          "[ApiController]",
-          "public class " .. class_name .. " : ControllerBase",
-          "{",
-          "}",
-        }
-        vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
-        -- vim.cmd("write")
-      end,
-    },
+function M.write_api_controller(opts)
+  opts = opts or {}
+  opts.file_ns = opts.file_ns ~= nil and opts.file_ns or true
+  write({
+    "using Microsoft.AspNetCore.Http;",
+    "using Microsoft.AspNetCore.Mvc;",
+    "",
+    "namespace %namespace%;",
+    "",
+    '[Route("api/[controller]")]',
+    "[ApiController]",
+    "public class %classname% : ControllerBase",
+    "{",
+    "}",
   })
 end
 

@@ -40,7 +40,8 @@ Uses https://github.com/ibhagwan/fzf-lua
 :Fzfdotnet secretslist
 ```
 
-## Alternatives
+## Alternatives and similar plugins
 
 - https://github.com/GustavEikaas/easy-dotnet.nvim
 - https://github.com/MoaidHathot/dotnet.nvim
+- https://github.com/DestopLine/boilersharp.nvim

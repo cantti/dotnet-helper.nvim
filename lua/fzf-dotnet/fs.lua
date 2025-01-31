@@ -1,5 +1,9 @@
 local M = {}
 
+function M.current_file_path()
+  return vim.fn.expand("%:p")
+end
+
 function M.remove_trailing_slah(path)
   return string.gsub(path, "/+$", "")
 end
@@ -10,6 +14,10 @@ end
 
 function M.get_file_name(path)
   return vim.fn.fnamemodify(path, ":t")
+end
+
+function M.get_file_name_without_ext(path)
+  return vim.fn.fnamemodify(path, ":t:r")
 end
 
 function M.get_ext(path)

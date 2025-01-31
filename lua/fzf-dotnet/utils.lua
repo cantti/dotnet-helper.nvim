@@ -34,20 +34,21 @@ function M.get_namespace_for_file(file_path)
     -- insert dir name as element of namespace
     table.insert(elements, 1, fs.get_file_name(curr_path))
 
-    -- do not go above root and pwd
-    if curr_path == "/" or curr_path == vim.fn.getcwd() then
+    -- do not go above pwd
+    if curr_path == vim.fn.getcwd() then
       break
     end
   end
   if csproj_path then
     local root_namespace = M.get_root_namespace(csproj_path)
-    table.insert(elements, 1, root_namespace)
+    if root_namespace then
+      table.insert(elements, 1, root_namespace)
+    end
   end
-  local namespace = ""
-  for _, element in ipairs(elements) do
-    namespace = namespace .. "." .. element
+  local namespace
+  if vim.tbl_count(elements) > 0 then
+    namespace = table.concat(elements, ".")
   end
-  namespace = string.gsub(namespace, "^.", "")
   return namespace
 end
 
@@ -58,6 +59,9 @@ function M.get_root_namespace(path)
     if namespace then
       break
     end
+  end
+  if not namespace then
+    namespace = fs.get_file_name_without_ext(path)
   end
   return namespace
 end
