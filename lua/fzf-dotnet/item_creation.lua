@@ -18,31 +18,58 @@ end
 
 function M.write_class(opts)
   opts = opts or {}
-  opts.file_ns = opts.file_ns ~= nil and opts.file_ns or true
-  write({
-    "namespace %namespace%;",
-    "",
-    "public class %classname%",
-    "{",
-    "}",
-  })
+  opts.blockns = opts.blockns or false
+  if opts.blockns then
+    write({
+      "namespace %namespace%",
+      "{",
+      "    public class %classname%",
+      "    {",
+      "    }",
+      "}",
+    })
+  else
+    write({
+      "namespace %namespace%;",
+      "",
+      "public class %classname%",
+      "{",
+      "}",
+    })
+  end
 end
 
 function M.write_api_controller(opts)
   opts = opts or {}
-  opts.file_ns = opts.file_ns ~= nil and opts.file_ns or true
-  write({
-    "using Microsoft.AspNetCore.Http;",
-    "using Microsoft.AspNetCore.Mvc;",
-    "",
-    "namespace %namespace%;",
-    "",
-    '[Route("api/[controller]")]',
-    "[ApiController]",
-    "public class %classname% : ControllerBase",
-    "{",
-    "}",
-  })
+  opts.blockns = opts.blockns or false
+  if opts.blockns then
+    write({
+      "using Microsoft.AspNetCore.Http;",
+      "using Microsoft.AspNetCore.Mvc;",
+      "",
+      "namespace %namespace% {",
+      "",
+      '    [Route("api/[controller]")]',
+      "    [ApiController]",
+      "    public class %classname% : ControllerBase",
+      "    {",
+      "    }",
+      "}",
+    })
+  else
+    write({
+      "using Microsoft.AspNetCore.Http;",
+      "using Microsoft.AspNetCore.Mvc;",
+      "",
+      "namespace %namespace%;",
+      "",
+      '[Route("api/[controller]")]',
+      "[ApiController]",
+      "public class %classname% : ControllerBase",
+      "{",
+      "}",
+    })
+  end
 end
 
 return M

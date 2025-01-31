@@ -12,16 +12,14 @@ local fzfdotnet_subcommands = {
       command_chooser.show()
     end,
   },
-  newclass = {
+  writeclass = {
     impl = function(args, opts)
-      item_creation.write_class()
+      item_creation.write_class({ blockns = vim.tbl_contains(args, "blockns") })
     end,
     complete = function(subcmd_arg_lead)
       -- Simplified example
       local install_args = {
-        "neorg",
-        "rest.nvim",
-        "rustaceanvim",
+        "blockns",
       }
       return vim
         .iter(install_args)
@@ -82,7 +80,7 @@ end
 
 function M.setup()
   vim.api.nvim_create_user_command("Fzfdotnet", fzf_dotnet_cmd, {
-    nargs = "?",
+    nargs = "*",
     desc = "",
     complete = function(arg_lead, cmdline, _)
       -- Get the subcommand.
