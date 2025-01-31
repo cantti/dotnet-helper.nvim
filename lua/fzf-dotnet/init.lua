@@ -14,7 +14,7 @@ local fzfdotnet_subcommands = {
   },
   newclass = {
     impl = function(args, opts)
-      item_creation.new_class()
+      item_creation.write_class()
     end,
     complete = function(subcmd_arg_lead)
       -- Simplified example

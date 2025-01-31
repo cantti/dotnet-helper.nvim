@@ -3,11 +3,11 @@ local M = {}
 local options = {
   {
     label = "New: C# class",
-    cmd = require("fzf-dotnet.item_creation").new_class,
+    cmd = require("fzf-dotnet.item_creation").write_class,
   },
   {
     label = "New: C# Api Controller",
-    cmd = require("fzf-dotnet.item_creation").new_api_controller,
+    cmd = require("fzf-dotnet.item_creation").write_api_controller,
   },
   {
     label = "Build",
