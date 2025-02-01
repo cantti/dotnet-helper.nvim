@@ -54,16 +54,14 @@ local function get_cmd(label)
 end
 
 function M.show()
-  require("fzf-lua").fzf_exec(labels, {
-    winopts = {
-      title = "Fzfdotnet commands",
-    },
-    actions = {
-      ["default"] = function(selected)
-        get_cmd(selected[1])()
-      end,
-    },
-  })
+  vim.ui.select(labels, {
+    prompt = "Choose an option:",
+  }, function(choice)
+    if not choice then
+      return
+    end
+    get_cmd(choice)()
+  end)
 end
 
 return M

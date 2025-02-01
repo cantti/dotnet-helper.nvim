@@ -79,7 +79,7 @@ local function fzf_dotnet_cmd(opts)
 end
 
 function M.setup()
-  vim.api.nvim_create_user_command("Fzfdotnet", fzf_dotnet_cmd, {
+  vim.api.nvim_create_user_command("Csw", fzf_dotnet_cmd, {
     nargs = "*",
     desc = "",
     complete = function(arg_lead, cmdline, _)
