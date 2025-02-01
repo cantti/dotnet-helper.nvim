@@ -3,43 +3,43 @@ local M = {}
 local options = {
   {
     label = "New: C# class",
-    cmd = require("fzf-dotnet.item_creation").write_class,
+    cmd = require("cshelper.templates").class,
   },
   {
     label = "New: C# Api Controller",
-    cmd = require("fzf-dotnet.item_creation").write_api_controller,
+    cmd = require("cshelper.templates").apicontroller,
   },
   {
     label = "Build",
-    cmd = require("fzf-dotnet.build").build,
+    cmd = require("cshelper.build").build,
   },
   {
     label = "Build: project or solution",
-    cmd = require("fzf-dotnet.build").build_project_or_solution,
+    cmd = require("cshelper.build").build_project_or_solution,
   },
   {
     label = "Run: project",
-    cmd = require("fzf-dotnet.run").run_project,
+    cmd = require("cshelper.run").run_project,
   },
   {
     label = "Clean",
-    cmd = require("fzf-dotnet.clean").clean,
+    cmd = require("cshelper.clean").clean,
   },
   {
     label = "Clean: project or solution",
-    cmd = require("fzf-dotnet.clean").clean_project_or_solution,
+    cmd = require("cshelper.clean").clean_project_or_solution,
   },
   {
     label = "Secrets: edit",
-    cmd = require("fzf-dotnet.secrets").edit_secrets,
+    cmd = require("cshelper.secrets").edit_secrets,
   },
   {
     label = "Secrets: list",
-    cmd = require("fzf-dotnet.secrets").list_secrets,
+    cmd = require("cshelper.secrets").list_secrets,
   },
   {
     label = "Fix namespace",
-    cmd = require("fzf-dotnet.fix_namespace").fix_namespace,
+    cmd = require("cshelper.fix_namespace").fix_namespace,
   },
 }
 

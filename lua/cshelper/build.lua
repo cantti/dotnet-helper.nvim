@@ -1,8 +1,8 @@
-local utils = require("fzf-dotnet.utils")
+local utils = require("cshelper.utils")
 
 local M = {}
 
-function M.clean_project_or_solution()
+function M.build_project_or_solution()
   local targets = utils.get_projects(true)
   require("fzf-lua").fzf_exec(targets, {
     winopts = {
@@ -10,14 +10,14 @@ function M.clean_project_or_solution()
     },
     actions = {
       ["default"] = function(selected)
-        vim.cmd("! dotnet clean " .. selected[1])
+        vim.cmd("! dotnet build " .. selected[1])
       end,
     },
   })
 end
 
-function M.clean()
-  vim.cmd("! dotnet clean")
+function M.build()
+  vim.cmd("! dotnet build")
 end
 
 return M

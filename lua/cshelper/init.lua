@@ -1,20 +1,36 @@
 local M = {}
 
-local item_creation = require("fzf-dotnet.item_creation")
-local command_chooser = require("fzf-dotnet.command_chooser")
-local build = require("fzf-dotnet.build")
-local secrets = require("fzf-dotnet.secrets")
-local run = require("fzf-dotnet.run")
+local templates = require("cshelper.templates")
+local command_chooser = require("cshelper.command_chooser")
+local build = require("cshelper.build")
+local secrets = require("cshelper.secrets")
+local run = require("cshelper.run")
 
-local fzfdotnet_subcommands = {
+local csh_subcommands = {
   commands = {
     impl = function(args, opts)
       command_chooser.show()
     end,
   },
-  writeclass = {
+  class = {
     impl = function(args, opts)
-      item_creation.write_class({ blockns = vim.tbl_contains(args, "blockns") })
+      templates.class({ blockns = vim.tbl_contains(args, "blockns") })
+    end,
+    complete = function(subcmd_arg_lead)
+      local install_args = {
+        "blockns",
+      }
+      return vim
+        .iter(install_args)
+        :filter(function(install_arg)
+          return install_arg:find(subcmd_arg_lead) ~= nil
+        end)
+        :totable()
+    end,
+  },
+  apicontroller = {
+    impl = function(args, opts)
+      templates.apicontroller({ blockns = vim.tbl_contains(args, "blockns") })
     end,
     complete = function(subcmd_arg_lead)
       -- Simplified example
@@ -59,8 +75,8 @@ local fzfdotnet_subcommands = {
   },
 }
 
--- main command :Fzfdotnet
-local function fzf_dotnet_cmd(opts)
+-- main command :Csh
+local function csh_cmd(opts)
   local fargs = opts.fargs
   if vim.tbl_isempty(fargs) then
     command_chooser.show()
@@ -69,9 +85,9 @@ local function fzf_dotnet_cmd(opts)
   local subcommand_key = fargs[1]
   -- Get the subcommand's arguments, if any
   local args = #fargs > 1 and vim.list_slice(fargs, 2, #fargs) or {}
-  local subcommand = fzfdotnet_subcommands[subcommand_key]
+  local subcommand = csh_subcommands[subcommand_key]
   if not subcommand then
-    vim.notify("Fzfdotnet: Unknown command: " .. subcommand_key, vim.log.levels.ERROR)
+    vim.notify("Csh: Unknown command: " .. subcommand_key, vim.log.levels.ERROR)
     return
   end
   -- Invoke the subcommand
@@ -79,25 +95,20 @@ local function fzf_dotnet_cmd(opts)
 end
 
 function M.setup()
-  vim.api.nvim_create_user_command("Csw", fzf_dotnet_cmd, {
+  vim.api.nvim_create_user_command("Csh", csh_cmd, {
     nargs = "*",
     desc = "",
     complete = function(arg_lead, cmdline, _)
       -- Get the subcommand.
-      local subcmd_key, subcmd_arg_lead = cmdline:match("^['<,'>]*Fzfdotnet[!]*%s(%S+)%s(.*)$")
-      if
-        subcmd_key
-        and subcmd_arg_lead
-        and fzfdotnet_subcommands[subcmd_key]
-        and fzfdotnet_subcommands[subcmd_key].complete
-      then
+      local subcmd_key, subcmd_arg_lead = cmdline:match("^['<,'>]*Csh[!]*%s(%S+)%s(.*)$")
+      if subcmd_key and subcmd_arg_lead and csh_subcommands[subcmd_key] and csh_subcommands[subcmd_key].complete then
         -- The subcommand has completions. Return them.
-        return fzfdotnet_subcommands[subcmd_key].complete(subcmd_arg_lead)
+        return csh_subcommands[subcmd_key].complete(subcmd_arg_lead)
       end
       -- Check if cmdline is a subcommand
-      if cmdline:match("^['<,'>]*Fzfdotnet[!]*%s+%w*$") then
+      if cmdline:match("^['<,'>]*Csh[!]*%s+%w*$") then
         -- Filter subcommands that match
-        local subcommand_keys = vim.tbl_keys(fzfdotnet_subcommands)
+        local subcommand_keys = vim.tbl_keys(csh_subcommands)
         return vim
           .iter(subcommand_keys)
           :filter(function(key)

@@ -1,4 +1,4 @@
-local fs = require("fzf-dotnet.fs")
+local fs = require("cshelper.fs")
 
 local M = {}
 

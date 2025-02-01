@@ -1,6 +1,6 @@
 local M = {}
-local fs = require("fzf-dotnet.fs")
-local utils = require("fzf-dotnet.utils")
+local fs = require("cshelper.fs")
+local utils = require("cshelper.utils")
 
 local function write(lines)
   local fpath = fs.current_file_path()
@@ -8,15 +8,16 @@ local function write(lines)
     namespace = utils.get_namespace_for_file(fpath),
     classname = fs.get_file_name_without_ext(fpath),
   }
-  for i, _ in ipairs(lines) do
+  lines = vim.tbl_map(function(line)
     for key, val in pairs(replacements) do
-      lines[i] = string.gsub(lines[i], "%%" .. key .. "%%", val)
+      line = string.gsub(line, "%%" .. key .. "%%", val)
     end
-  end
+    return line
+  end, lines)
   vim.api.nvim_put(lines, "c", true, true)
 end
 
-function M.write_class(opts)
+function M.class(opts)
   opts = opts or {}
   opts.blockns = opts.blockns or false
   if opts.blockns then
@@ -39,12 +40,11 @@ function M.write_class(opts)
   end
 end
 
-function M.write_api_controller(opts)
+function M.apicontroller(opts)
   opts = opts or {}
   opts.blockns = opts.blockns or false
   if opts.blockns then
     write({
-      "using Microsoft.AspNetCore.Http;",
       "using Microsoft.AspNetCore.Mvc;",
       "",
       "namespace %namespace% {",
@@ -58,7 +58,6 @@ function M.write_api_controller(opts)
     })
   else
     write({
-      "using Microsoft.AspNetCore.Http;",
       "using Microsoft.AspNetCore.Mvc;",
       "",
       "namespace %namespace%;",

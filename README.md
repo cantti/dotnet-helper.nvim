@@ -1,4 +1,4 @@
-# Fzf-dotnet.nvim
+# cshelper.nvim
 
 Set of useful commands for dotnet development.
 
@@ -10,7 +10,7 @@ Uses https://github.com/ibhagwan/fzf-lua
 
 ```lua
 {
-  dir = "cantti/fzf-dotnet.nvim",
+  dir = "cantti/cshelper.nvim",
   opts = {},
   dependencies = { "ibhagwan/fzf-lua" },
 },
@@ -22,22 +22,22 @@ Uses https://github.com/ibhagwan/fzf-lua
 
 ```sh
 # show all commands
-:Fzfdotnet
+:Csh
 
 # create new c# class
-:Fzfdotnet newclass
+:Csh newclass
 
 # build 
-:Fzfdotnet build
+:Csh build
 
 # build project or solution
-:Fzfdotnet buildproject
+:Csh buildproject
 
 # edit secrets.json
-:Fzfdotnet secretsedit
+:Csh secretsedit
 
 # show secrets
-:Fzfdotnet secretslist
+:Csh secretslist
 ```
 
 ## Alternatives and similar plugins
