@@ -48,29 +48,29 @@ local csh_subcommands = {
     end,
     -- ...
   },
+  fixns = {
+    impl = function(args, opts)
+      require("cshelper.fix_ns").fixns()
+    end,
+  },
   build = {
     impl = function(args, opts)
-      build.build()
+      build.execute()
     end,
   },
-  buildproject = {
+  run = {
     impl = function(args, opts)
-      build.build_project_or_solution()
-    end,
-  },
-  runproject = {
-    impl = function(args, opts)
-      run.run_project()
+      run.execute()
     end,
   },
   secretslist = {
     impl = function(args, opts)
-      secrets.list_secrets()
+      secrets.list()
     end,
   },
   secretsedit = {
     impl = function(args, opts)
-      secrets.edit_secrets()
+      secrets.edit()
     end,
   },
 }

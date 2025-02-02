@@ -27,7 +27,6 @@ local function get_secrets_tbl(project_path)
   end
   return secrets_tbl
 end
-
 local function open_secrets_json(project_path)
   -- create secrets if does not exist
   vim.system({ "dotnet", "user-secrets", "init", "-p", project_path }):wait()
@@ -54,64 +53,50 @@ end
 
 local function list_secrets(project_path)
   local secrets = get_secrets_tbl(project_path)
-  local keys = vim.tbl_map(function(x)
-    return x.key
+  local choices = vim.tbl_map(function(x)
+    return x.key .. " = " .. x.value
   end, secrets)
-  require("fzf-lua").fzf_exec(keys, {
-    winopts = {
-      title = "Select secret",
-    },
-    fzf_opts = {
-      ["--preview"] = function(selected)
-        return vim.tbl_map(function(s)
-          return vim.tbl_filter(function(x)
-            return x.key == s
-          end, secrets)[1].value
-        end, selected)
-      end,
-    },
-    actions = {
-      ["default"] = function(selected, opts)
-        open_secrets_json(project_path)
-        vim.fn.search('"' .. selected[1] .. '"')
-      end,
-    },
-  })
+  vim.ui.select(choices, {
+    prompt = "Choose secret:",
+  }, function(choice)
+    if not choice then
+      return
+    end
+    open_secrets_json(project_path)
+    local key = string.match(choice, "(.-) = ")
+    vim.fn.search('"' .. key .. '"')
+  end)
 end
 
-function M.edit_secrets()
+function M.edit()
   local targets = utils.get_projects(false)
   if vim.tbl_count(targets) == 1 then
     open_secrets_json(targets[1])
   else
-    require("fzf-lua").fzf_exec(targets, {
-      winopts = {
-        title = "Select project or solution",
-      },
-      actions = {
-        ["default"] = function(selected, opts)
-          open_secrets_json(selected[1])
-        end,
-      },
-    })
+    vim.ui.select(targets, {
+      prompt = "Choose project:",
+    }, function(choice)
+      if not choice then
+        return
+      end
+      open_secrets_json(choice)
+    end)
   end
 end
 
-function M.list_secrets()
+function M.list()
   local targets = utils.get_projects(false)
   if vim.tbl_count(targets) == 1 then
     list_secrets(targets[1])
   else
-    require("fzf-lua").fzf_exec(targets, {
-      winopts = {
-        title = "Select project or solution",
-      },
-      actions = {
-        ["default"] = function(selected, opts)
-          list_secrets(selected[1])
-        end,
-      },
-    })
+    vim.ui.select(targets, {
+      prompt = "Choose project:",
+    }, function(choice)
+      if not choice then
+        return
+      end
+      list_secrets(choice)
+    end)
   end
 end
 

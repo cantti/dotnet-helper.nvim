@@ -2,22 +2,20 @@ local utils = require("cshelper.utils")
 
 local M = {}
 
-function M.clean_project_or_solution()
-  local targets = utils.get_projects(true)
-  require("fzf-lua").fzf_exec(targets, {
-    winopts = {
-      title = "Select project or solution",
-    },
-    actions = {
-      ["default"] = function(selected)
-        vim.cmd("! dotnet clean " .. selected[1])
-      end,
-    },
-  })
+local function clean(project)
+  vim.cmd("term dotnet clean " .. project)
 end
 
-function M.clean()
-  vim.cmd("! dotnet clean")
+function M.execute()
+  local targets = utils.get_projects(true)
+  vim.ui.select(targets, {
+    prompt = "Choose project or solution:",
+  }, function(choice)
+    if not choice then
+      return
+    end
+    clean(choice)
+  end)
 end
 
 return M

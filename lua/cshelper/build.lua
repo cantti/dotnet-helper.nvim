@@ -2,22 +2,20 @@ local utils = require("cshelper.utils")
 
 local M = {}
 
-function M.build_project_or_solution()
-  local targets = utils.get_projects(true)
-  require("fzf-lua").fzf_exec(targets, {
-    winopts = {
-      title = "Select project or solution",
-    },
-    actions = {
-      ["default"] = function(selected)
-        vim.cmd("! dotnet build " .. selected[1])
-      end,
-    },
-  })
+local function build(project)
+  vim.cmd("term dotnet build " .. project)
 end
 
-function M.build()
-  vim.cmd("! dotnet build")
+function M.execute()
+  local targets = utils.get_projects(true)
+  vim.ui.select(targets, {
+    prompt = "Choose project or solution:",
+  }, function(choice)
+    if not choice then
+      return
+    end
+    build(choice)
+  end)
 end
 
 return M

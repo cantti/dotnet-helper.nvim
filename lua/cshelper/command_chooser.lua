@@ -11,35 +11,23 @@ local options = {
   },
   {
     label = "Build",
-    cmd = require("cshelper.build").build,
-  },
-  {
-    label = "Build: project or solution",
-    cmd = require("cshelper.build").build_project_or_solution,
-  },
-  {
-    label = "Run: project",
-    cmd = require("cshelper.run").run_project,
+    cmd = require("cshelper.build").execute,
   },
   {
     label = "Clean",
-    cmd = require("cshelper.clean").clean,
-  },
-  {
-    label = "Clean: project or solution",
-    cmd = require("cshelper.clean").clean_project_or_solution,
+    cmd = require("cshelper.clean").execute,
   },
   {
     label = "Secrets: edit",
-    cmd = require("cshelper.secrets").edit_secrets,
+    cmd = require("cshelper.secrets").edit,
   },
   {
     label = "Secrets: list",
-    cmd = require("cshelper.secrets").list_secrets,
+    cmd = require("cshelper.secrets").list,
   },
   {
     label = "Fix namespace",
-    cmd = require("cshelper.fix_namespace").fix_namespace,
+    cmd = require("cshelper.fix_ns").execute,
   },
 }
 
