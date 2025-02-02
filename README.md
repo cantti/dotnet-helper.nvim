@@ -2,9 +2,6 @@
 
 Set of useful commands for dotnet development.
 
-<img width="655" alt="image" src="https://github.com/user-attachments/assets/16478ee0-cee0-490f-8268-37254a75192e" />
-
-Uses https://github.com/ibhagwan/fzf-lua
 
 ## Installation:
 
@@ -12,7 +9,6 @@ Uses https://github.com/ibhagwan/fzf-lua
 {
   dir = "cantti/cshelper.nvim",
   opts = {},
-  dependencies = { "ibhagwan/fzf-lua" },
 },
 
 ```
@@ -25,19 +21,30 @@ Uses https://github.com/ibhagwan/fzf-lua
 :Csh
 
 # create new c# class
-:Csh newclass
+:Csh class
+:Csh class blockns # block namespace
+
+# create new c# api controller
+:Csh apicontroller
+:Csh apicontroller blockns # block namespace
+
+# run 
+:Csh run
 
 # build 
 :Csh build
 
-# build project or solution
-:Csh buildproject
+# clean 
+:Csh clean
+
+# fix namespace (asks for directory where to fix) 
+:Csh fixns
+
+# list secrets in secrets.json
+:Csh secretlist
 
 # edit secrets.json
 :Csh secretsedit
-
-# show secrets
-:Csh secretslist
 ```
 
 ## Alternatives and similar plugins
