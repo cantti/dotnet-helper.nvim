@@ -24,13 +24,37 @@ function M.execute()
   local dir = vim.fn.input("Enter directory path: ", ".", "dir")
   local files = utils.get_file_options(dir, { "cs" })
   local updated_files = {}
+  local transitions = {}
+
+  -- update namespace in files
   for _, file_path in ipairs(files) do
-    local new_namespace = utils.get_namespace_for_file(file_path)
     local content = readAll(file_path)
-    local new_content = string.gsub(content, "(namespace) .-([;%s])", "%1 " .. new_namespace .. "%2")
-    write_to_file(file_path, new_content)
-    if content ~= new_content then
+    local old_ns = string.match(content, "namespace%s+([^;%s]+)")
+    local new_ns = utils.get_namespace_for_file(file_path)
+
+    if old_ns and old_ns ~= new_ns then
+      -- namespace can end on ; or space (new line)
+      content = string.gsub(content, "namespace%s+[^;%s]+", "namespace " .. new_ns)
       table.insert(updated_files, file_path)
+      transitions[old_ns] = new_ns
+      write_to_file(file_path, content)
+    end
+  end
+
+  vim.print(transitions)
+
+  -- update usings
+  local all_files = utils.get_file_options(".", { "cs" })
+  for _, file_path in ipairs(all_files) do
+    local content = readAll(file_path)
+    local is_updated = false
+    for old_ns, new_ns in pairs(transitions) do
+      local count
+      content, count = string.gsub(content, "using%s+" .. old_ns .. ";", "using " .. new_ns .. ";")
+      is_updated = is_updated or count > 0
+    end
+    if is_updated then
+      write_to_file(file_path, content)
     end
   end
   -- update buffers
