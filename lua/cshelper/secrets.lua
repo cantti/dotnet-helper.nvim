@@ -18,23 +18,11 @@ local function get_secrets_path(project_path)
   return path
 end
 
-local function get_secrets_tbl(project_path)
-  local output = vim.system({ "dotnet", "user-secrets", "list", "-p", project_path }):wait()
-  local secrets_tbl = {}
-  for secret in string.gmatch(output.stdout, "(.-)\n") do
-    local key, value = string.match(secret, "(.-) = (.+)")
-    table.insert(secrets_tbl, { key = key, value = value })
-  end
-  return secrets_tbl
-end
 local function open_secrets_json(project_path)
   -- create secrets if does not exist
   vim.system({ "dotnet", "user-secrets", "init", "-p", project_path }):wait()
-
   local secrets_path = assert(get_secrets_path(project_path), "secrets file not found")
-
   if not fs.file_exists(secrets_path) then
-    -- create file if does not exist
     local buf = vim.api.nvim_create_buf(true, false)
     vim.api.nvim_buf_set_name(buf, secrets_path)
     vim.api.nvim_buf_set_option(buf, "filetype", "json")
@@ -52,20 +40,34 @@ local function open_secrets_json(project_path)
 end
 
 local function list_secrets(project_path)
-  local secrets = get_secrets_tbl(project_path)
-  local choices = vim.tbl_map(function(x)
-    return x.key .. " = " .. x.value
-  end, secrets)
-  vim.ui.select(choices, {
-    prompt = "Choose secret:",
-  }, function(choice)
-    if not choice then
-      return
+  local function get_secrets_tbl()
+    local output = vim.system({ "dotnet", "user-secrets", "list", "-p", project_path }):wait()
+    local secrets_tbl = {}
+    if string.match(output.stdout, "=") then
+      for secret in string.gmatch(output.stdout, "(.-)\n") do
+        local key, value = string.match(secret, "(.-) = (.+)")
+        table.insert(secrets_tbl, { key = key, value = value })
+      end
     end
-    open_secrets_json(project_path)
-    local key = string.match(choice, "(.-) = ")
-    vim.fn.search('"' .. key .. '"')
-  end)
+    return secrets_tbl
+  end
+  local secrets = get_secrets_tbl()
+  if not vim.tbl_isempty(secrets) then
+    vim.ui.select(secrets, {
+      prompt = "Choose secret:",
+      format_item = function(item)
+        return string.format("%s = %s", item.key, item.value)
+      end,
+    }, function(choice)
+      if not choice then
+        return
+      end
+      open_secrets_json(project_path)
+      vim.fn.search('"' .. choice.key .. '"')
+    end)
+  else
+    vim.notify("No secrets configured for the project", vim.log.levels.WARN)
+  end
 end
 
 function M.edit()
