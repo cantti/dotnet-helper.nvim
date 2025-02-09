@@ -3,21 +3,22 @@ local buf_utils = require("cshelper.buf_utils")
 local fs = require("cshelper.fs")
 
 local M = {}
+local H = {}
 
-local updated_ns = 0
-local updated_usings = 0
+H.updated_ns = 0
+H.updated_usings = 0
 
-local function reset_stats()
-  updated_usings = 0
-  updated_ns = 0
+function H.reset_stats()
+  H.updated_usings = 0
+  H.updated_ns = 0
 end
 
-local function notify_stats()
-  vim.notify("Updated namespaces: " .. updated_ns, vim.log.levels.INFO)
-  vim.notify("Updated usings: " .. updated_usings, vim.log.levels.INFO)
+function H.notify_stats()
+  vim.notify("Updated namespaces: " .. H.updated_ns, vim.log.levels.INFO)
+  vim.notify("Updated usings: " .. H.updated_usings, vim.log.levels.INFO)
 end
 
-local function get_files_not_opened(dir)
+function H.get_files_not_opened(dir)
   local buffers = buf_utils.get_valid_buffers()
   local result = {}
   local files = utils.get_file_options(dir, { "cs" })
@@ -32,7 +33,7 @@ local function get_files_not_opened(dir)
   return result
 end
 
-local function update_usings(lines, old_ns, new_ns)
+function H.update_usings(lines, old_ns, new_ns)
   local res = { updated = false, lines = {} }
 
   -- check if already has using
@@ -46,38 +47,38 @@ local function update_usings(lines, old_ns, new_ns)
     if not already_has_using and string.match(line, "using%s+" .. old_ns .. ";") then
       table.insert(res.lines, "using " .. new_ns .. ";")
       res.updated = true
-      updated_usings = updated_usings + 1
+      H.updated_usings = H.updated_usings + 1
     end
   end
 
   return res
 end
 
-local function update_usings_cwd(old_ns, new_ns)
+function H.update_usings_cwd(old_ns, new_ns)
   local buffers = buf_utils.get_valid_buffers()
 
   -- update usings for buffers
   for _, buf in ipairs(buffers) do
     local lines = buf_utils.read(buf.no)
-    local res = update_usings(lines, old_ns, new_ns)
+    local res = H.update_usings(lines, old_ns, new_ns)
     if res.updated then
       buf_utils.replace_lines(buf.no, res.lines)
     end
   end
 
   -- find other files
-  local files = get_files_not_opened(fs.cwd())
+  local files = H.get_files_not_opened(fs.cwd())
 
   for _, filepath in ipairs(files) do
     local lines = fs.read(filepath)
-    local res = update_usings(lines, old_ns, new_ns)
+    local res = H.update_usings(lines, old_ns, new_ns)
     if res.updated then
       buf_utils.open_and_replace_lines(filepath, res.lines)
     end
   end
 end
 
-local function fix_ns(lines, filepath)
+function H.fix_ns(lines, filepath)
   local new_ns = utils.get_namespace_for_file(filepath)
   local res = { updated = false, lines = {}, old_ns = nil, new_ns = new_ns }
   for _, line in ipairs(lines) do
@@ -87,7 +88,7 @@ local function fix_ns(lines, filepath)
       if old_ns ~= new_ns then
         line = string.gsub(line, "namespace%s+[^;%s]+", "namespace " .. new_ns)
         res.updated = true
-        updated_ns = updated_ns + 1
+        H.updated_ns = H.updated_ns + 1
       end
     end
     table.insert(res.lines, line)
@@ -95,22 +96,24 @@ local function fix_ns(lines, filepath)
   return res
 end
 
-function M.fix_ns_buf()
-  reset_stats()
+function H.fix_ns_buf(opts)
+  H.reset_stats()
   local buf = vim.api.nvim_get_current_buf()
   local filepath = vim.api.nvim_buf_get_name(buf)
   local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
-  local res = fix_ns(lines, filepath)
+  local res = H.fix_ns(lines, filepath)
   if res.updated then
     vim.api.nvim_buf_set_lines(buf, 0, -1, false, res.lines)
-    update_usings_cwd(res.old_ns, res.new_ns)
+    if opts.update_usings then
+      H.update_usings_cwd(res.old_ns, res.new_ns)
+    end
   end
-  notify_stats()
+  H.notify_stats()
 end
 
-function M.fix_ns_dir()
+function H.fix_ns_dir(opts)
   vim.ui.input({ prompt = "Enter directory: ", default = fs.cwd(), completion = "dir" }, function(dir)
-    reset_stats()
+    H.reset_stats()
 
     local curr_buf = vim.api.nvim_get_current_buf()
 
@@ -121,30 +124,46 @@ function M.fix_ns_dir()
     local buffers = buf_utils.get_valid_buffers_in_dir(dir)
 
     for _, buf in ipairs(buffers) do
-      local res = fix_ns(buf_utils.read(buf.no), buf.name)
+      local res = H.fix_ns(buf_utils.read(buf.no), buf.name)
       if res.updated then
         buf_utils.replace_lines(buf.no, res.lines)
-        update_usings_cwd(res.old_ns, res.new_ns)
+        if opts.update_usings then
+          H.update_usings_cwd(res.old_ns, res.new_ns)
+        end
       end
     end
 
     -- update in files
-    local files = get_files_not_opened(dir)
+    local files = H.get_files_not_opened(dir)
 
     for _, filepath in ipairs(files) do
       -- read without opening buffer
-      local res = fix_ns(fs.read(filepath), filepath)
+      local res = H.fix_ns(fs.read(filepath), filepath)
       if res.updated then
         buf_utils.open_and_replace_lines(filepath, res.lines)
-        update_usings_cwd(res.old_ns, res.new_ns)
+        if opts.update_usings then
+          H.update_usings_cwd(res.old_ns, res.new_ns)
+        end
       end
     end
 
     -- restore old buf
     vim.api.nvim_set_current_buf(curr_buf)
 
-    notify_stats()
+    H.notify_stats()
   end)
+end
+
+function M.fix_ns(opts)
+  opts = vim.tbl_deep_extend("keep", opts, {
+    mode = "buffer",
+    update_usings = true,
+  })
+  if opts.mode == "buffer" then
+    H.fix_ns_buf(opts)
+  elseif opts.mode == "directory" then
+    H.fix_ns_dir(opts)
+  end
 end
 
 return M

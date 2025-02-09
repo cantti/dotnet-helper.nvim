@@ -26,12 +26,28 @@ local options = {
     cmd = require("cshelper.secrets").list,
   },
   {
-    label = "Fix namespace in buffer",
-    cmd = require("cshelper.fix_ns").fix_ns_buf,
+    label = "Fix namespace: buffer, update usings",
+    cmd = function()
+      require("cshelper.fix_ns").fix_ns({ mode = "buffer", update_usings = true })
+    end,
   },
   {
-    label = "Fix namespace in directory",
-    cmd = require("cshelper.fix_ns").fix_ns_dir,
+    label = "Fix namespace: buffer, do not update usings",
+    cmd = function()
+      require("cshelper.fix_ns").fix_ns({ mode = "buffer", update_usings = false })
+    end,
+  },
+  {
+    label = "Fix namespace: directory, update usings",
+    cmd = function()
+      require("cshelper.fix_ns").fix_ns({ mode = "directory", update_usings = true })
+    end,
+  },
+  {
+    label = "Fix namespace: directory, do not update usings",
+    cmd = function()
+      require("cshelper.fix_ns").fix_ns({ mode = "directory", update_usings = false })
+    end,
   },
 }
 
