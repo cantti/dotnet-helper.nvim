@@ -1,66 +1,155 @@
 local utils = require("cshelper.utils")
+local fs = require("cshelper.fs")
 
 local M = {}
 
-local function readAll(file)
-  local f = assert(io.open(file, "rb"))
-  local content = f:read("*all")
-  f:close()
-  return content
-end
-
-local function write_to_file(path, content)
-  local file = io.open(path, "w") -- Open the file in write mode
+local function read(filepath)
+  local file = io.open(filepath, "r") -- Open file in read mode
   if not file then
-    return false, "Error: Could not open file for writing."
+    print("Error: Unable to open file " .. filepath)
+    return nil
   end
 
-  file:write(content) -- Write the content to the file
+  local lines = {} -- Table to store lines
+  for line in file:lines() do
+    table.insert(lines, line)
+  end
+
   file:close() -- Close the file
-  return true, "File written successfully."
+  return lines -- Return table with file content
 end
 
-function M.execute()
+local function update_usings(lines, old_ns, new_ns)
+  local res = { updated = false, lines = {} }
+
+  -- check if already has using
+  local already_has_using = false
+  for _, line in ipairs(lines) do
+    if string.match(line, "using%s+" .. new_ns .. ";") then
+      already_has_using = true
+      break
+    end
+  end
+
+  -- set res.lines and insert new using
+  for _, line in ipairs(lines) do
+    table.insert(res.lines, line)
+    if not already_has_using and string.match(line, "using%s+" .. old_ns .. ";") then
+      table.insert(res.lines, "using " .. new_ns .. ";")
+      res.updated = true
+    end
+  end
+
+  return res
+end
+
+local function update_usings_in_cwd(old_ns, new_ns)
+  local curr_buf = vim.api.nvim_get_current_buf()
+  local all_files = utils.get_file_options(".", { "cs" })
+  for _, filepath in ipairs(all_files) do
+    filepath = fs.abs_path(filepath)
+    -- ignore current file
+    if fs.current_file_path() ~= fs.abs_path(filepath) then
+      -- try updating ns in current buffers
+      local found_in_buffers = false
+      for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+        if vim.api.nvim_buf_is_loaded(buf) then
+          local bufname = vim.api.nvim_buf_get_name(buf)
+          if bufname == filepath then
+            found_in_buffers = true
+            local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+            local res = update_usings(lines, filepath)
+            if res.updated then
+              vim.api.nvim_buf_set_lines(buf, 0, -1, false, res.lines)
+              update_usings_in_cwd(res.old_ns, res.new_ns)
+            end
+            break
+          end
+        end
+      end
+
+      -- read file and if not found
+      if not found_in_buffers then
+        local lines = read(filepath)
+        local res = update_usings(lines, old_ns, new_ns)
+        if res.updated then
+          vim.cmd("edit " .. vim.fn.fnameescape(filepath))
+          local buf = vim.api.nvim_get_current_buf()
+          vim.api.nvim_buf_set_lines(buf, 0, -1, false, res.lines)
+        end
+      end
+    end
+  end
+  vim.api.nvim_set_current_buf(curr_buf)
+end
+
+local function fix_ns(lines, filepath)
+  local new_ns = utils.get_namespace_for_file(filepath)
+  local res = { updated = false, lines = {}, old_ns = nil, new_ns = new_ns }
+  for _, line in ipairs(lines) do
+    local old_ns = string.match(line, "namespace%s+([^;%s]+)")
+    if old_ns and not res.updated then
+      res.old_ns = old_ns
+      if old_ns ~= new_ns then
+        line = string.gsub(line, "namespace%s+[^;%s]+", "namespace " .. new_ns)
+        res.updated = true
+      end
+    end
+    table.insert(res.lines, line)
+  end
+  return res
+end
+
+function M.fix_ns_document()
+  local buf = vim.api.nvim_get_current_buf()
+  local filepath = vim.api.nvim_buf_get_name(buf)
+  local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+  local res = fix_ns(lines, filepath)
+  if res.updated then
+    vim.api.nvim_buf_set_lines(buf, 0, -1, false, res.lines)
+    update_usings_in_cwd(res.old_ns, res.new_ns)
+  end
+  vim.notify("Namespace was updated", vim.log.levels.INFO)
+end
+
+function M.fix_ns_directory()
+  -- local curr_buf = vim.api.nvim_get_current_buf()
   vim.ui.input({ prompt = "Enter directory: ", default = ".", completion = "dir" }, function(dir)
+    vim.api.nvim_input("<Esc>")
     local files = utils.get_file_options(dir, { "cs" })
-    local updated_files = {}
-    local transitions = {}
-
     -- update namespace in files
-    for _, file_path in ipairs(files) do
-      local content = readAll(file_path)
-      local old_ns = string.match(content, "namespace%s+([^;%s]+)")
-      local new_ns = utils.get_namespace_for_file(file_path)
-
-      if old_ns and old_ns ~= new_ns then
-        -- namespace can end on ; or space (new line)
-        content = string.gsub(content, "namespace%s+[^;%s]+", "namespace " .. new_ns)
-        table.insert(updated_files, file_path)
-        transitions[old_ns] = new_ns
-        write_to_file(file_path, content)
+    for _, filepath in ipairs(files) do
+      filepath = fs.abs_path(filepath)
+      -- try finding in buffers
+      local found_in_buffers = false
+      for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+        if vim.api.nvim_buf_is_loaded(buf) then
+          local bufname = vim.api.nvim_buf_get_name(buf)
+          if bufname == filepath then
+            found_in_buffers = true
+            local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+            local res = fix_ns(lines, filepath)
+            if res.updated then
+              vim.api.nvim_buf_set_lines(buf, 0, -1, false, res.lines)
+              update_usings_in_cwd(res.old_ns, res.new_ns)
+            end
+            break
+          end
+        end
+      end
+      -- read file and if not found
+      if not found_in_buffers then
+        -- read without opening buffer
+        local lines = read(filepath)
+        local res = fix_ns(lines, filepath)
+        if res.updated then
+          vim.cmd("edit " .. vim.fn.fnameescape(filepath))
+          local buf = vim.api.nvim_get_current_buf()
+          vim.api.nvim_buf_set_lines(buf, 0, -1, false, res.lines)
+          update_usings_in_cwd(res.old_ns, res.new_ns)
+        end
       end
     end
-
-    vim.print(transitions)
-
-    -- update usings
-    local all_files = utils.get_file_options(".", { "cs" })
-    for _, file_path in ipairs(all_files) do
-      local content = readAll(file_path)
-      local is_updated = false
-      for old_ns, new_ns in pairs(transitions) do
-        local count
-        content, count = string.gsub(content, "using%s+" .. old_ns .. ";", "using " .. new_ns .. ";")
-        is_updated = is_updated or count > 0
-      end
-      if is_updated then
-        write_to_file(file_path, content)
-      end
-    end
-    -- update buffers
-    vim.cmd("bufdo checktime")
-
-    vim.print("Updated files count: " .. vim.tbl_count(updated_files))
   end)
 end
 

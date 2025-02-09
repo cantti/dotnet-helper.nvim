@@ -50,7 +50,7 @@ local csh_subcommands = {
   },
   fixns = {
     impl = function(args, opts)
-      require("cshelper.fix_ns").execute()
+      require("cshelper.fix_ns").fix_ns_document()
     end,
   },
   build = {
