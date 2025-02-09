@@ -18,8 +18,9 @@ local function write(lines)
 end
 
 function M.class(opts)
-  opts = opts or {}
-  opts.blockns = opts.blockns or false
+  opts = vim.tbl_deep_extend("keep", opts, {
+    blockns = false,
+  })
   if opts.blockns then
     write({
       "namespace %namespace%",
@@ -40,9 +41,10 @@ function M.class(opts)
   end
 end
 
-function M.apicontroller(opts)
-  opts = opts or {}
-  opts.blockns = opts.blockns or false
+function M.api_controller(opts)
+  opts = vim.tbl_deep_extend("keep", opts, {
+    blockns = false,
+  })
   if opts.blockns then
     write({
       "using Microsoft.AspNetCore.Mvc;",

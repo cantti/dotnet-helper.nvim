@@ -2,7 +2,6 @@
 
 Set of useful commands for dotnet development.
 
-
 ## Installation:
 
 ```lua
@@ -15,36 +14,41 @@ Set of useful commands for dotnet development.
 
 ## Usage
 
+Convenient way is to map command picker:
 
-```sh
-# show all commands
-:Csh
+```lua
 
-# create new c# class
-:Csh class
-:Csh class blockns # block namespace
+vim.keymap.set({ "n", "v" }, "<leader>#", function() require("cshelper").commands() end)
 
-# create new c# api controller
-:Csh apicontroller
-:Csh apicontroller blockns # block namespace
+```
 
-# run 
-:Csh run
+Individual commands also available:
 
-# build 
-:Csh build
 
-# clean 
-:Csh clean
+```lua
 
-# fix namespace (asks for directory where to fix) 
-:Csh fixns
+-- Fix namespace
+require("cshelper").fix_ns({ 
+  mode = "buffer",
+  update_usings = true,
+})
 
-# list secrets in secrets.json
-:Csh secretlist
+-- Put new class with correct namespace
+require("cshelper").new_class({ 
+  blockns = false,
+})
 
-# edit secrets.json
-:Csh secretsedit
+-- Put new api controller with correct namespace
+require("cshelper").new_api_controller({ 
+  blockns = false,
+})
+
+-- Secrets list
+require("cshelper").secrets_list()
+
+-- Secrets edit
+require("cshelper").secrets_edit()
+
 ```
 
 ## Alternatives and similar plugins

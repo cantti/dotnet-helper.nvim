@@ -2,51 +2,51 @@ local M = {}
 
 local options = {
   {
-    label = "New: C# class",
-    cmd = require("cshelper.templates").class,
+    label = "New C# class: file scoped namespace",
+    cmd = function()
+      require("cshelper").new_class({ blockns = false })
+    end,
   },
   {
-    label = "New: C# Api Controller",
-    cmd = require("cshelper.templates").apicontroller,
-  },
-  {
-    label = "Build",
-    cmd = require("cshelper.build").execute,
-  },
-  {
-    label = "Clean",
-    cmd = require("cshelper.clean").execute,
+    label = "New C# class: block namespace",
+    cmd = function()
+      require("cshelper").new_api_controller({ blockns = true })
+    end,
   },
   {
     label = "Secrets: edit",
-    cmd = require("cshelper.secrets").edit,
+    cmd = function()
+      require("cshelper").secrets_edit()
+    end,
   },
   {
     label = "Secrets: list",
-    cmd = require("cshelper.secrets").list,
+    cmd = function()
+      require("cshelper").secrets_list()
+    end,
   },
   {
     label = "Fix namespace: buffer, update usings",
     cmd = function()
-      require("cshelper.fix_ns").fix_ns({ mode = "buffer", update_usings = true })
+      require("cshelper").fix_ns({ mode = "buffer", update_usings = true })
     end,
   },
   {
     label = "Fix namespace: buffer, do not update usings",
     cmd = function()
-      require("cshelper.fix_ns").fix_ns({ mode = "buffer", update_usings = false })
+      require("cshelper").fix_ns({ mode = "buffer", update_usings = false })
     end,
   },
   {
     label = "Fix namespace: directory, update usings",
     cmd = function()
-      require("cshelper.fix_ns").fix_ns({ mode = "directory", update_usings = true })
+      require("cshelper").fix_ns({ mode = "directory", update_usings = true })
     end,
   },
   {
     label = "Fix namespace: directory, do not update usings",
     cmd = function()
-      require("cshelper.fix_ns").fix_ns({ mode = "directory", update_usings = false })
+      require("cshelper").fix_ns({ mode = "directory", update_usings = false })
     end,
   },
 }
