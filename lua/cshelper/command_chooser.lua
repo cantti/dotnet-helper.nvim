@@ -2,15 +2,27 @@ local M = {}
 
 local options = {
   {
-    label = "New C# class: file scoped namespace",
+    label = "New class: file scoped namespace",
     cmd = function()
       require("cshelper").new_class({ blockns = false })
     end,
   },
   {
-    label = "New C# class: block namespace",
+    label = "New class: block namespace",
     cmd = function()
       require("cshelper").new_api_controller({ blockns = true })
+    end,
+  },
+  {
+    label = "New api controller: file scoped namespace",
+    cmd = function()
+      require("cshelper").new_api_controller({ blockns = false })
+    end,
+  },
+  {
+    label = "New api controller: block namespace",
+    cmd = function()
+      require("cshelper").new_api_controller({ blockns = false })
     end,
   },
   {

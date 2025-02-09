@@ -49,8 +49,8 @@ function M.api_controller(opts)
     write({
       "using Microsoft.AspNetCore.Mvc;",
       "",
-      "namespace %namespace% {",
-      "",
+      "namespace %namespace%",
+      "{",
       '    [Route("api/[controller]")]',
       "    [ApiController]",
       "    public class %classname% : ControllerBase",
