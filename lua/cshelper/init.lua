@@ -50,12 +50,12 @@ local csh_subcommands = {
   },
   fix_ns_buf = {
     impl = function(args, opts)
-      require("cshelper.fix_ns").fix_ns_document()
+      require("cshelper.fix_ns").fix_ns_buf()
     end,
   },
   fix_ns_dir = {
     impl = function(args, opts)
-      require("cshelper.fix_ns").fix_ns_directory()
+      require("cshelper.fix_ns").fix_ns_dir()
     end,
   },
   build = {

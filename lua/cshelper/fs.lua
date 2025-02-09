@@ -114,4 +114,20 @@ function M.file_exists(path)
   end
 end
 
+function M.read(filepath)
+  local file = io.open(filepath, "r") -- Open file in read mode
+  if not file then
+    print("Error: Unable to open file " .. filepath)
+    return nil
+  end
+
+  local lines = {} -- Table to store lines
+  for line in file:lines() do
+    table.insert(lines, line)
+  end
+
+  file:close() -- Close the file
+  return lines -- Return table with file content
+end
+
 return M

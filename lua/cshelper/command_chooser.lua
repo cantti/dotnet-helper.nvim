@@ -26,12 +26,12 @@ local options = {
     cmd = require("cshelper.secrets").list,
   },
   {
-    label = "Fix namespace document",
-    cmd = require("cshelper.fix_ns").fix_ns_document,
+    label = "Fix namespace in buffer",
+    cmd = require("cshelper.fix_ns").fix_ns_buf,
   },
   {
-    label = "Fix namespace directory",
-    cmd = require("cshelper.fix_ns").fix_ns_directory,
+    label = "Fix namespace in directory",
+    cmd = require("cshelper.fix_ns").fix_ns_dir,
   },
 }
 
