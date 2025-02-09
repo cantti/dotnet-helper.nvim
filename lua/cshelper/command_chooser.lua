@@ -22,7 +22,7 @@ local options = {
   {
     label = "New api controller: block namespace",
     cmd = function()
-      require("cshelper").new_api_controller({ blockns = false })
+      require("cshelper").new_api_controller({ blockns = true })
     end,
   },
   {
