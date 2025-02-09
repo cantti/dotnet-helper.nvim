@@ -77,6 +77,9 @@ function M.edit()
   else
     vim.ui.select(targets, {
       prompt = "Choose project:",
+      format_item = function(item)
+        return fs.relative_path(item)
+      end,
     }, function(choice)
       if not choice then
         return
@@ -93,6 +96,9 @@ function M.list()
   else
     vim.ui.select(targets, {
       prompt = "Choose project:",
+      format_item = function(item)
+        return fs.relative_path(item)
+      end,
     }, function(choice)
       if not choice then
         return

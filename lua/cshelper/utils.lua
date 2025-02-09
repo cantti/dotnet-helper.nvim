@@ -9,7 +9,7 @@ function M.get_projects(include_solution)
   if include_solution then
     table.insert(valid_ext, "sln")
   end
-  return M.get_file_options(".", valid_ext)
+  return M.get_file_options(fs.cwd(), valid_ext)
 end
 
 function M.get_namespace_for_file(file_path)
@@ -79,7 +79,7 @@ function M.get_dir_options(path)
   return result
 end
 
----Get list of valid project files in path for fzf
+---Get list of valid project files in path
 function M.get_file_options(path, valid_ext)
   valid_ext = valid_ext or {}
   local result = {}

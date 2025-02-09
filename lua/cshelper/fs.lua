@@ -1,5 +1,7 @@
 local M = {}
 
+local uv = vim.uv or vim.loop
+
 function M.current_file_path()
   return vim.fn.expand("%:p")
 end
@@ -36,8 +38,28 @@ function M.join_paths(paths, normalize)
 end
 
 function M.abs_path(path)
-  -- fnamemodify gives unpredictable results if file does not exist
-  return M.join_paths({ vim.fn.getcwd(), path })
+  return vim.fn.fnamemodify(path, ":p")
+  -- old version
+  -- if not M.is_absolute(path) then
+  --   -- fnamemodify gives unpredictable results if file does not exist
+  --   return M.join_paths({ vim.fn.getcwd(), path })
+  -- else
+  --   return path
+  -- end
+end
+
+function M.relative_path(path)
+  return vim.fn.fnamemodify(path, ":.")
+end
+
+M.is_windows = uv.os_uname().version:match("Windows")
+
+function M.is_absolute(path)
+  if M.is_windows then
+    return path:match("^%a:/")
+  else
+    return vim.startswith(path, "/")
+  end
 end
 
 function M.normalize(path)
