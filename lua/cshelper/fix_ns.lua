@@ -100,10 +100,9 @@ function H.fix_ns_buf(opts)
   H.reset_stats()
   local buf = vim.api.nvim_get_current_buf()
   local filepath = vim.api.nvim_buf_get_name(buf)
-  local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
-  local res = H.fix_ns(lines, filepath)
+  local res = H.fix_ns(buf_utils.read(buf), filepath)
   if res.updated then
-    vim.api.nvim_buf_set_lines(buf, 0, -1, false, res.lines)
+    buf_utils.replace_lines(buf, res.lines)
     if opts.update_usings then
       H.update_usings_cwd(res.old_ns, res.new_ns)
     end
