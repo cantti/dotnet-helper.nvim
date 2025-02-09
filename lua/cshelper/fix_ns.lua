@@ -58,10 +58,9 @@ local function update_usings_in_cwd(old_ns, new_ns)
           if bufname == filepath then
             found_in_buffers = true
             local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
-            local res = update_usings(lines, filepath)
+            local res = update_usings(lines, old_ns, new_ns)
             if res.updated then
               vim.api.nvim_buf_set_lines(buf, 0, -1, false, res.lines)
-              update_usings_in_cwd(res.old_ns, res.new_ns)
             end
             break
           end
@@ -115,7 +114,6 @@ end
 function M.fix_ns_directory()
   -- local curr_buf = vim.api.nvim_get_current_buf()
   vim.ui.input({ prompt = "Enter directory: ", default = ".", completion = "dir" }, function(dir)
-    vim.api.nvim_input("<Esc>")
     local files = utils.get_file_options(dir, { "cs" })
     -- update namespace in files
     for _, filepath in ipairs(files) do
@@ -137,7 +135,7 @@ function M.fix_ns_directory()
           end
         end
       end
-      -- read file and if not found
+      -- read file if not found
       if not found_in_buffers then
         -- read without opening buffer
         local lines = read(filepath)

@@ -35,24 +35,17 @@ local options = {
   },
 }
 
-local labels = vim.tbl_map(function(x)
-  return x.label
-end, options)
-
-local function get_cmd(label)
-  return vim.tbl_filter(function(x)
-    return x.label == label
-  end, options)[1].cmd
-end
-
 function M.show()
-  vim.ui.select(labels, {
+  vim.ui.select(options, {
     prompt = "Choose an option:",
+    format_item = function(item)
+      return item.label
+    end,
   }, function(choice)
     if not choice then
       return
     end
-    get_cmd(choice)()
+    choice.cmd()
   end)
 end
 

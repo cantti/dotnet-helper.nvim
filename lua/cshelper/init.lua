@@ -48,9 +48,14 @@ local csh_subcommands = {
     end,
     -- ...
   },
-  fixns = {
+  fix_ns_buf = {
     impl = function(args, opts)
       require("cshelper.fix_ns").fix_ns_document()
+    end,
+  },
+  fix_ns_dir = {
+    impl = function(args, opts)
+      require("cshelper.fix_ns").fix_ns_directory()
     end,
   },
   build = {
