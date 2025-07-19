@@ -17,38 +17,53 @@ Set of useful commands for dotnet development.
 Convenient way is to map command picker:
 
 ```lua
-
-vim.keymap.set({ "n", "v" }, "<leader>#", function() require("cshelper").commands() end)
-
+vim.keymap.set("n", "<leader>#", function() require("cshelper").commands() end)
 ```
 
-Individual commands also available:
-
+Or map individual commands:
 
 ```lua
+vim.keymap.set("n", "<leader>#", require("cshelper").secrets_list() end)
+```
 
--- Fix namespace
-require("cshelper").fix_ns({ 
-  mode = "buffer",
-  update_usings = true,
-})
+## Individual Commands
 
--- Put new class with correct namespace
-require("cshelper").new_class({ 
-  blockns = false,
-})
+Below are examples of how to use the available commands in `cshelper`:
 
--- Put new api controller with correct namespace
-require("cshelper").new_api_controller({ 
-  blockns = false,
-})
+### Fix namespace for buffer
 
--- Secrets list
+```lua
+require("cshelper").fix_ns_buf()
+```
+
+### Fix namespace for directory
+
+```lua
+require("cshelper").fix_ns_dir()
+```
+
+### Create New Class
+
+```lua
+require("cshelper").new_class({ use_block_ns = false })
+```
+
+### Create New API Controller
+
+```lua
+require("cshelper").new_api_controller({ use_block_ns = false })
+```
+
+### List Secrets
+
+```lua
 require("cshelper").secrets_list()
+```
 
--- Secrets edit
+### Edit Secrets
+
+```lua
 require("cshelper").secrets_edit()
-
 ```
 
 ## Alternatives and similar plugins

@@ -1,8 +1,6 @@
 local M = {}
 
-function M.setup()
-  vim.api.nvim_create_user_command("Csh", require("cshelper.command_chooser").show, {})
-end
+function M.setup() end
 
 function M.commands()
   require("cshelper.command_chooser").show()
@@ -18,6 +16,10 @@ end
 
 function M.new_api_controller(opts)
   require("cshelper.templates").api_controller(opts)
+end
+
+function M.new_property(opts)
+  require("cshelper.templates").property(opts)
 end
 
 function M.secrets_list()

@@ -4,25 +4,31 @@ local options = {
   {
     label = "New class: file scoped namespace",
     cmd = function()
-      require("cshelper").new_class({ blockns = false })
+      require("cshelper").new_class({ use_block_ns = false })
     end,
   },
   {
     label = "New class: block namespace",
     cmd = function()
-      require("cshelper").new_api_controller({ blockns = true })
+      require("cshelper").new_class({ use_block_ns = true })
     end,
   },
   {
     label = "New api controller: file scoped namespace",
     cmd = function()
-      require("cshelper").new_api_controller({ blockns = false })
+      require("cshelper").new_api_controller({ use_block_ns = false })
     end,
   },
   {
     label = "New api controller: block namespace",
     cmd = function()
-      require("cshelper").new_api_controller({ blockns = true })
+      require("cshelper").new_api_controller({ use_block_ns = true })
+    end,
+  },
+  {
+    label = "New property: required",
+    cmd = function()
+      require("cshelper").new_property()
     end,
   },
   {
@@ -38,27 +44,16 @@ local options = {
     end,
   },
   {
-    label = "Fix namespace: buffer, update usings",
+    label = "Fix namespace: buffer",
     cmd = function()
-      require("cshelper").fix_ns({ mode = "buffer", update_usings = true })
+      require("cshelper").fix_ns_buf()
     end,
+    cho,
   },
   {
-    label = "Fix namespace: buffer, do not update usings",
+    label = "Fix namespace: directory",
     cmd = function()
-      require("cshelper").fix_ns({ mode = "buffer", update_usings = false })
-    end,
-  },
-  {
-    label = "Fix namespace: directory, update usings",
-    cmd = function()
-      require("cshelper").fix_ns({ mode = "directory", update_usings = true })
-    end,
-  },
-  {
-    label = "Fix namespace: directory, do not update usings",
-    cmd = function()
-      require("cshelper").fix_ns({ mode = "directory", update_usings = false })
+      require("cshelper").fix_ns_dir()
     end,
   },
 }
