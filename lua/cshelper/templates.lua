@@ -52,7 +52,6 @@ local function write(lines)
         -- if end of the line, replace with space, for set pos to work correctly
         -- otherwise just remove
         -- helps when called from normal mode and cursor cannot be set after last not white space
-        line = string.gsub(line, "%%c%%$", " ")
         line = string.gsub(line, "%%c%%", "")
       end
     end
@@ -60,14 +59,16 @@ local function write(lines)
     lines[iLine] = line
   end
 
-  -- third parameter true to make very obvious how it work in normal mode
+  -- third param true work best here
+  -- very obvious in normal mode
+  -- in insert mode works correct at the end of the line. last char does not exist yet, so it insert *after* previous.
   vim.api.nvim_put(lines, "c", true, false)
 
   -- set cursor
   if new_pos.found then
     utils.set_pos(new_pos.row, new_pos.col)
-    vim.cmd("startinsert")
   end
+  vim.cmd("startinsert")
 end
 
 function M.class(opts)
@@ -138,12 +139,11 @@ function M.property(opts)
     vim.ui.input({ prompt = "Required?: ", default = "y" }, function(required)
       if required == "y" then
         write({
-          "ttttttttt",
-          "public required " .. name .. "%c% { get; set; }",
+          "public required " .. name .. " { get; set; }",
         })
       else
         write({
-          "public " .. name .. " { get; set; }%c%",
+          "public " .. name .. " { get; set; }",
         })
       end
     end)
