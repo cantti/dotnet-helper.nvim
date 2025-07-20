@@ -33,24 +33,37 @@ local function write(lines)
       line = string.gsub(line, "^%s*", string.rep(get_ident(), spaces_count / 2))
     end
 
+    -- add offset based on current row indent, skipping first line, because it is already idented
+    if iLine > 1 then
+      line = string.rep(" ", vim.fn.indent(utils.get_cur_row())) .. line
+    end
+
     if not new_pos.found then
-      local col = string.find(line, "|")
+      local col = string.find(line, "%%c%%", 1)
       if col then
         new_pos.found = true
         new_pos.row = utils.get_cur_row() + iLine - 1
         if #lines == 1 then
-          new_pos.col = utils.get_cur_col() + col - 1
+          dd(utils.get_cur_col())
+          new_pos.col = utils.get_cur_col() + col
         else
           new_pos.col = col
         end
-        line = string.gsub(line, "|", " ")
+        -- if end of the line, replace with space, for set pos to work correctly
+        -- otherwise just remove
+        -- helps when called from normal mode and cursor cannot be set after last not white space
+        line = string.gsub(line, "%%c%%$", " ")
+        line = string.gsub(line, "%%c%%", "")
       end
     end
+
     lines[iLine] = line
   end
 
-  vim.api.nvim_put(lines, "c", false, false)
+  -- third parameter true to make very obvious how it work in normal mode
+  vim.api.nvim_put(lines, "c", true, false)
 
+  -- set cursor
   if new_pos.found then
     utils.set_pos(new_pos.row, new_pos.col)
     vim.cmd("startinsert")
@@ -67,7 +80,7 @@ function M.class(opts)
       "{",
       "  public class %classname%",
       "  {",
-      "    |",
+      "    %c%",
       "  }",
       "}",
     })
@@ -77,7 +90,7 @@ function M.class(opts)
       "",
       "public class %classname%",
       "{",
-      "  |",
+      "  %c%",
       "}",
     })
   end
@@ -97,7 +110,7 @@ function M.api_controller(opts)
       "  [ApiController]",
       "  public class %classname% : ControllerBase",
       "  {",
-      "    |",
+      "    %c%",
       "  }",
       "}",
     })
@@ -111,7 +124,7 @@ function M.api_controller(opts)
       "[ApiController]",
       "public class %classname% : ControllerBase",
       "{",
-      "  |",
+      "  %c%",
       "}",
     })
   end
@@ -121,14 +134,33 @@ function M.property(opts)
   opts = vim.tbl_deep_extend("keep", opts or {}, {
     required = true,
   })
-  if opts.required then
+  vim.ui.input({ prompt = "Enter property name: ", default = "NewProperty" }, function(name)
+    vim.ui.input({ prompt = "Required?: ", default = "y" }, function(required)
+      if required == "y" then
+        write({
+          "ttttttttt",
+          "public required " .. name .. "%c% { get; set; }",
+        })
+      else
+        write({
+          "public " .. name .. " { get; set; }%c%",
+        })
+      end
+    end)
+  end)
+end
+
+function M.method(opts)
+  opts = vim.tbl_deep_extend("keep", opts or {}, {
+    required = true,
+  })
+  vim.ui.input({ prompt = "Enter method name: ", default = "NewMethod" }, function(name)
     write({
-      "public required |{get; set;}",
+      "public void " .. name .. "()",
+      "{",
+      "  %c%",
+      "}",
     })
-  else
-    write({
-      "public |{get; set;}",
-    })
-  end
+  end)
 end
 return M

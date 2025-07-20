@@ -138,6 +138,10 @@ function M.get_cur_col()
   return vim.api.nvim_win_get_cursor(0)[2] + 1
 end
 
+function M.set_col(col)
+  vim.api.nvim_win_set_cursor(0, { M.get_cur_row(), col - 1 })
+end
+
 function M.set_pos(row, col)
   vim.api.nvim_win_set_cursor(0, { row, col - 1 })
 end

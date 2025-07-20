@@ -72,4 +72,56 @@ function M.show()
   end)
 end
 
+local new_options = {
+  {
+    label = "New class: file scoped namespace",
+    cmd = function()
+      require("cshelper").new_class({ use_block_ns = false })
+    end,
+  },
+  {
+    label = "New class: block namespace",
+    cmd = function()
+      require("cshelper").new_class({ use_block_ns = true })
+    end,
+  },
+  {
+    label = "New api controller: file scoped namespace",
+    cmd = function()
+      require("cshelper").new_api_controller({ use_block_ns = false })
+    end,
+  },
+  {
+    label = "New api controller: block namespace",
+    cmd = function()
+      require("cshelper").new_api_controller({ use_block_ns = true })
+    end,
+  },
+  {
+    label = "New property: required",
+    cmd = function()
+      require("cshelper").new_property()
+    end,
+  },
+  {
+    label = "New method: required",
+    cmd = function()
+      require("cshelper").new_method()
+    end,
+  },
+}
+
+function M.show_new()
+  vim.ui.select(new_options, {
+    prompt = "Choose an option:",
+    format_item = function(item)
+      return item.label
+    end,
+  }, function(choice)
+    if not choice then
+      return
+    end
+    choice.cmd()
+  end)
+end
 return M

@@ -6,6 +6,10 @@ function M.commands()
   require("cshelper.command_chooser").show()
 end
 
+function M.template_commands()
+  require("cshelper.command_chooser").show_new()
+end
+
 function M.fix_ns(opts)
   require("cshelper.fix_ns").fix_ns(opts)
 end
@@ -20,6 +24,10 @@ end
 
 function M.new_property(opts)
   require("cshelper.templates").property(opts)
+end
+
+function M.new_method(opts)
+  require("cshelper.templates").method(opts)
 end
 
 function M.secrets_list()
