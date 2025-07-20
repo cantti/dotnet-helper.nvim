@@ -7,6 +7,36 @@ local function get_ident()
   return vim.fn["repeat"](" ", vim.opt.shiftwidth:get())
 end
 
+local function ask(questions, callback)
+  local answers = {}
+  local function _ask(iQuestion)
+    local question = questions[iQuestion]
+    vim.ui.input({ prompt = question.prompt, default = question.default }, function(value)
+      if question.bool then
+        value = string.lower(value)
+        answers[question.key] = value == "y" or value == "yes"
+      else
+        answers[question.key] = value
+      end
+      if iQuestion ~= #questions then
+        _ask(iQuestion + 1)
+      else
+        callback(answers)
+      end
+    end)
+  end
+  _ask(1)
+end
+
+local function question(prompt, default, key, bool)
+  return {
+    prompt = prompt,
+    default = default,
+    key = key,
+    bool = bool,
+  }
+end
+
 local function write(lines)
   local new_pos = {
     found = false,
@@ -39,19 +69,16 @@ local function write(lines)
     end
 
     if not new_pos.found then
-      local col = string.find(line, "%%c%%", 1)
+      local col = string.find(line, "%%c%%")
       if col then
         new_pos.found = true
         new_pos.row = utils.get_cur_row() + iLine - 1
         if #lines == 1 then
-          dd(utils.get_cur_col())
+          -- we isert in *after* mode, so no need -1
           new_pos.col = utils.get_cur_col() + col
         else
           new_pos.col = col
         end
-        -- if end of the line, replace with space, for set pos to work correctly
-        -- otherwise just remove
-        -- helps when called from normal mode and cursor cannot be set after last not white space
         line = string.gsub(line, "%%c%%", "")
       end
     end
@@ -61,106 +88,110 @@ local function write(lines)
 
   -- third param true work best here
   -- very obvious in normal mode
-  -- in insert mode works correct at the end of the line. last char does not exist yet, so it insert *after* previous.
+  -- in insert mode works correct at the end of the line. last char does not exist yet, so it inserts *after* previous.
   vim.api.nvim_put(lines, "c", true, false)
 
   -- set cursor
   if new_pos.found then
+    vim.cmd("startinsert")
     utils.set_pos(new_pos.row, new_pos.col)
   end
-  vim.cmd("startinsert")
 end
 
-function M.class(opts)
-  opts = vim.tbl_deep_extend("keep", opts or {}, {
-    use_block_ns = false,
-  })
-  if opts.use_block_ns then
-    write({
-      "namespace %namespace%",
-      "{",
-      "  public class %classname%",
-      "  {",
-      "    %c%",
-      "  }",
-      "}",
-    })
-  else
-    write({
-      "namespace %namespace%;",
-      "",
-      "public class %classname%",
-      "{",
-      "  %c%",
-      "}",
-    })
-  end
-end
-
-function M.api_controller(opts)
-  opts = vim.tbl_deep_extend("keep", opts or {}, {
-    use_block_ns = false,
-  })
-  if opts.use_block_ns then
-    write({
-      "using Microsoft.AspNetCore.Mvc;",
-      "",
-      "namespace %namespace%",
-      "{",
-      '  [Route("api/[controller]")]',
-      "  [ApiController]",
-      "  public class %classname% : ControllerBase",
-      "  {",
-      "    %c%",
-      "  }",
-      "}",
-    })
-  else
-    write({
-      "using Microsoft.AspNetCore.Mvc;",
-      "",
-      "namespace %namespace%;",
-      "",
-      '[Route("api/[controller]")]',
-      "[ApiController]",
-      "public class %classname% : ControllerBase",
-      "{",
-      "  %c%",
-      "}",
-    })
-  end
-end
-
-function M.property(opts)
-  opts = vim.tbl_deep_extend("keep", opts or {}, {
-    required = true,
-  })
-  vim.ui.input({ prompt = "Enter property name: ", default = "NewProperty" }, function(name)
-    vim.ui.input({ prompt = "Required?: ", default = "y" }, function(required)
-      if required == "y" then
-        write({
-          "public required " .. name .. " { get; set; }",
-        })
-      else
-        write({
-          "public " .. name .. " { get; set; }",
-        })
-      end
-    end)
+function M.class()
+  ask({
+    question("Enter class name:", fs.get_file_name_without_ext(fs.current_file_path()), "name"),
+    question("Use block namespace?", "n", "block_ns", true),
+  }, function(answers)
+    if answers.block_ns then
+      write({
+        "namespace %namespace%",
+        "{",
+        "  public class " .. answers.name,
+        "  {",
+        "    %c%",
+        "  }",
+        "}",
+      })
+    else
+      write({
+        "namespace %namespace%;",
+        "",
+        "public class " .. answers.name,
+        "{",
+        "  %c%",
+        "}",
+      })
+    end
   end)
 end
 
-function M.method(opts)
-  opts = vim.tbl_deep_extend("keep", opts or {}, {
-    required = true,
-  })
-  vim.ui.input({ prompt = "Enter method name: ", default = "NewMethod" }, function(name)
+function M.api_controller()
+  ask({
+    question("Enter controller name:", fs.get_file_name_without_ext(fs.current_file_path()), "name"),
+    question("Use block namespace?", "n", "block_ns", true),
+  }, function(answers)
+    if answers.block_ns then
+      write({
+        "using Microsoft.AspNetCore.Mvc;",
+        "",
+        "namespace %namespace%",
+        "{",
+        '  [Route("api/[controller]")]',
+        "  [ApiController]",
+        "  public class " .. answers.name .. " : ControllerBase",
+        "  {",
+        "    %c%",
+        "  }",
+        "}",
+      })
+    else
+      write({
+        "using Microsoft.AspNetCore.Mvc;",
+        "",
+        "namespace %namespace%;",
+        "",
+        '[Route("api/[controller]")]',
+        "[ApiController]",
+        "public class " .. answers.name .. " : ControllerBase",
+        "{",
+        "  %c%",
+        "}",
+      })
+    end
+  end)
+end
+
+function M.property()
+  ask({
+    question("Enter property name:", "NewProperty", "name"),
+    question("Enter type:", "string", "type"),
+    question("Required?:", "y", "required", true),
+  }, function(answers)
+    local required_str = ""
+    if answers.required then
+      required_str = "required "
+    end
+    write({ "public " .. required_str .. answers.type .. " " .. answers.name .. " { get; set; }%c%" })
+  end)
+end
+
+function M.method()
+  ask({
+    question("Enter method name:", "NewMethod", "name"),
+    question("Async:", "n", "async", true),
+  }, function(answers)
+    local return_str = "void"
+    if answers.async then
+      return_str = "async Task"
+    end
     write({
-      "public void " .. name .. "()",
+      "public " .. return_str .. " " .. answers.name .. "()",
       "{",
       "  %c%",
       "}",
     })
   end)
 end
+
 return M
