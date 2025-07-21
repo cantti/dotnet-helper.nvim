@@ -3,25 +3,25 @@ local templates = require("cshelper.templates")
 
 local options = {
   {
-    label = "New class",
+    label = "Class",
     cmd = function()
       templates.class()
     end,
   },
   {
-    label = "New api controller",
+    label = "Controller",
     cmd = function()
       templates.api_controller()
     end,
   },
   {
-    label = "New property",
+    label = "Property",
     cmd = function()
       templates.property()
     end,
   },
   {
-    label = "New method",
+    label = "Method",
     cmd = function()
       templates.property()
     end,
