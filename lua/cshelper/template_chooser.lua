@@ -23,7 +23,7 @@ local options = {
   {
     label = "Method",
     cmd = function()
-      templates.property()
+      templates.method()
     end,
   },
 }
