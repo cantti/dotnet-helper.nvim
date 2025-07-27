@@ -179,14 +179,19 @@ end
 function M.method()
   ask({
     question("Enter method name:", "NewMethod", "name"),
+    question("Public:", "n", "public", true),
     question("Async:", "n", "async", true),
   }, function(answers)
     local return_str = "void"
     if answers.async then
       return_str = "async Task"
     end
+    local mod_string = "private"
+    if answers.public then
+      mod_string = "public"
+    end
     write({
-      "public " .. return_str .. " " .. answers.name .. "()",
+      mod_string .. " " .. return_str .. " " .. answers.name .. "()",
       "{",
       "  %c%",
       "}",
