@@ -11,7 +11,7 @@ local function ask(questions, callback)
   local answers = {}
   local function _ask(iQuestion)
     local question = questions[iQuestion]
-    vim.ui.input({ prompt = question.prompt, default = question.default }, function(value)
+    vim.ui.input({ prompt = question.prompt .. ": ", default = question.default }, function(value)
       if question.bool then
         value = string.lower(value)
         answers[question.key] = value == "y" or value == "yes"
@@ -100,7 +100,7 @@ end
 
 function M.class()
   ask({
-    question("Enter class name:", fs.get_file_name_without_ext(fs.current_file_path()), "name"),
+    question("Enter class name", fs.get_file_name_without_ext(fs.current_file_path()), "name"),
     question("Use block namespace?", "n", "block_ns", true),
   }, function(answers)
     if answers.block_ns then
@@ -128,8 +128,8 @@ end
 
 function M.api_controller()
   ask({
-    question("Enter controller name:", fs.get_file_name_without_ext(fs.current_file_path()), "name"),
-    question("Use block namespace?", "n", "block_ns", true),
+    question("Enter controller name", fs.get_file_name_without_ext(fs.current_file_path()), "name"),
+    question("Use block namespace", "n", "block_ns", true),
   }, function(answers)
     if answers.block_ns then
       write({
@@ -164,9 +164,9 @@ end
 
 function M.property()
   ask({
-    question("Enter property name:", "NewProperty", "name"),
-    question("Enter type:", "string", "type"),
-    question("Required?:", "y", "required", true),
+    question("Enter property name", "NewProperty", "name"),
+    question("Enter type", "string", "type"),
+    question("Required", "y", "required", true),
   }, function(answers)
     local required_str = ""
     if answers.required then
@@ -178,9 +178,9 @@ end
 
 function M.method()
   ask({
-    question("Enter method name:", "NewMethod", "name"),
-    question("Public:", "n", "public", true),
-    question("Async:", "n", "async", true),
+    question("Enter method name", "NewMethod", "name"),
+    question("Public", "n", "public", true),
+    question("Async", "n", "async", true),
   }, function(answers)
     local return_str = "void"
     if answers.async then
