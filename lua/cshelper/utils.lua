@@ -146,4 +146,10 @@ function M.set_pos(row, col)
   vim.api.nvim_win_set_cursor(0, { row, col - 1 })
 end
 
+function M.info(message)
+  vim.defer_fn(function()
+    vim.notify(string.format(message), vim.log.levels.INFO)
+  end, 10)
+end
+
 return M
