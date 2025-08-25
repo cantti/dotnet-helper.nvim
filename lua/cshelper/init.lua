@@ -14,4 +14,9 @@ function M.templates()
   require("cshelper.template_chooser").show()
 end
 
+function M.nuget_search()
+  require("cshelper.nuget").search()
+
+end
+
 return M
