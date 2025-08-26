@@ -37,23 +37,28 @@ local function question(prompt, default, key, bool)
   }
 end
 
-local function write(lines)
-  local new_pos = {
-    found = false,
-    row = 0,
-    col = 0,
-  }
-  local fpath = fs.current_file_path()
-  local replacements = {
-    namespace = utils.get_namespace_for_file(fpath),
-    classname = fs.get_file_name_without_ext(fpath),
-  }
+local function get_class_name()
+  return fs.get_file_name_without_ext(fs.current_file_path())
+end
+
+local function get_namespace()
+  return utils.get_namespace_for_file(fs.current_file_path())
+end
+
+local function insert(lines)
+  local buf = vim.api.nvim_get_current_buf()
+  local row = vim.api.nvim_win_get_cursor(0)[1]
+
+  local start, stop = row, row
+  local cur = vim.api.nvim_buf_get_lines(buf, row - 1, row, false)[1] or ""
+  if cur:match("^%s*$") then
+    -- replace the empty current line
+    start, stop = row - 1, row
+  end
+
+  local tgt_row, tgt_col
 
   for iLine, line in ipairs(lines) do
-    for key, val in pairs(replacements) do
-      line = string.gsub(line, "%%" .. key .. "%%", val)
-    end
-
     -- count how many spaces at the beginning of the line
     local _, spaces_count = string.find(line, "^%s*")
 
@@ -63,67 +68,59 @@ local function write(lines)
       line = string.gsub(line, "^%s*", string.rep(get_ident(), spaces_count / 2))
     end
 
-    -- add offset based on current row indent, skipping first line, because it is already idented
-    if iLine > 1 then
-      line = string.rep(" ", vim.fn.indent(utils.get_cur_row())) .. line
-    end
+    -- add offset based on current row indent
+    line = string.rep(" ", vim.fn.indent(row)) .. line
 
-    if not new_pos.found then
-      local col = string.find(line, "%%c%%")
-      if col then
-        new_pos.found = true
-        new_pos.row = utils.get_cur_row() + iLine - 1
-        if #lines == 1 then
-          -- we isert in *after* mode, so no need -1
-          new_pos.col = utils.get_cur_col() + col
-        else
-          new_pos.col = col
-        end
-        line = string.gsub(line, "%%c%%", "")
-      end
+    local col = string.find(line, "$0")
+    if col then
+      tgt_row = start + iLine
+      tgt_col = col
+      line = string.gsub(line, "$0", "")
     end
 
     lines[iLine] = line
   end
 
-  -- third param true work best here
-  -- very obvious in normal mode
-  -- in insert mode works correct at the end of the line. last char does not exist yet, so it inserts *after* previous.
-  vim.api.nvim_put(lines, "c", true, false)
+  vim.api.nvim_buf_set_lines(buf, start, stop, false, lines)
 
-  -- set cursor
-  if new_pos.found then
-    vim.cmd("startinsert")
-    utils.set_pos(new_pos.row, new_pos.col)
+  if tgt_row and tgt_col then
+    vim.api.nvim_win_set_cursor(0, { tgt_row, tgt_col })
+  end
+end
+
+---@class InsertClassOpts
+---@field name? string
+---@field block_ns? boolean
+
+---@param opts InsertClassOpts Options for generating the class code.
+function M.insert_class(opts)
+  if opts.block_ns then
+    insert({
+      "namespace " .. get_namespace(),
+      "{",
+      "  public class " .. (opts.name or get_class_name()),
+      "  {",
+      "    $0",
+      "  }",
+      "}",
+    })
+  else
+    insert({
+      "namespace " .. get_namespace() .. ";",
+      "",
+      "public class " .. (opts.name or get_class_name()),
+      "{",
+      "  $0",
+      "}",
+    })
   end
 end
 
 function M.class()
   ask({
-    question("Enter class name", fs.get_file_name_without_ext(fs.current_file_path()), "name"),
+    question("Enter class name", get_class_name(), "name"),
     question("Use block namespace?", "n", "block_ns", true),
-  }, function(answers)
-    if answers.block_ns then
-      write({
-        "namespace %namespace%",
-        "{",
-        "  public class " .. answers.name,
-        "  {",
-        "    %c%",
-        "  }",
-        "}",
-      })
-    else
-      write({
-        "namespace %namespace%;",
-        "",
-        "public class " .. answers.name,
-        "{",
-        "  %c%",
-        "}",
-      })
-    end
-  end)
+  }, M.insert_class)
 end
 
 function M.api_controller()
@@ -132,30 +129,30 @@ function M.api_controller()
     question("Use block namespace", "n", "block_ns", true),
   }, function(answers)
     if answers.block_ns then
-      write({
+      insert({
         "using Microsoft.AspNetCore.Mvc;",
         "",
         "namespace %namespace%",
         "{",
         '  [Route("api/[controller]")]',
         "  [ApiController]",
-        "  public class " .. answers.name .. " : ControllerBase",
+        "  public class " .. (answers.name or get_class_name()) .. " : ControllerBase",
         "  {",
-        "    %c%",
+        "    $0",
         "  }",
         "}",
       })
     else
-      write({
+      insert({
         "using Microsoft.AspNetCore.Mvc;",
         "",
         "namespace %namespace%;",
         "",
         '[Route("api/[controller]")]',
         "[ApiController]",
-        "public class " .. answers.name .. " : ControllerBase",
+        "public class " .. (answers.name or get_class_name()) .. " : ControllerBase",
         "{",
-        "  %c%",
+        "  $0",
         "}",
       })
     end
@@ -172,7 +169,7 @@ function M.property()
     if answers.required then
       required_str = "required "
     end
-    write({ "public " .. required_str .. answers.type .. " " .. answers.name .. " { get; set; }%c%" })
+    insert({ "public " .. required_str .. answers.type .. " " .. answers.name .. " { get; set; }$0" })
   end)
 end
 
@@ -190,10 +187,10 @@ function M.method()
     if answers.public then
       mod_string = "public"
     end
-    write({
+    insert({
       mod_string .. " " .. return_str .. " " .. answers.name .. "()",
       "{",
-      "  %c%",
+      "  $0",
       "}",
     })
   end)

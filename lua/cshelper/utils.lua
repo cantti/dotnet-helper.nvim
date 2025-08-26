@@ -130,26 +130,9 @@ function M.replace_lines(no, lines)
   vim.api.nvim_buf_set_lines(no, 0, -1, false, lines)
 end
 
-function M.get_cur_row()
-  return vim.api.nvim_win_get_cursor(0)[1]
-end
-
-function M.get_cur_col()
-  return vim.api.nvim_win_get_cursor(0)[2] + 1
-end
-
-function M.set_col(col)
-  vim.api.nvim_win_set_cursor(0, { M.get_cur_row(), col - 1 })
-end
-
-function M.set_pos(row, col)
-  vim.api.nvim_win_set_cursor(0, { row, col - 1 })
-end
-
-function M.info(message)
-  vim.defer_fn(function()
-    vim.notify(string.format(message), vim.log.levels.INFO)
-  end, 10)
+function M.cur_buff_empty()
+  local bufnr = vim.api.nvim_get_current_buf()
+  return (vim.api.nvim_buf_line_count(bufnr) <= 1 and #vim.api.nvim_buf_get_lines(bufnr, 0, 1, false)[1] == 0)
 end
 
 return M
