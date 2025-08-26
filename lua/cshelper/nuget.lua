@@ -69,7 +69,7 @@ end
 function Nuget:search()
   vim.ui.input({ prompt = "Query: " }, function(input)
     vim.system(
-      { "dotnet", "package", "search", input, "--format", "json", "--take", "100" },
+      { "dotnet", "package", "search", input, "--format", "json", "--take", "20" },
       vim.schedule_wrap(function(output)
         local result = vim.json.decode(output.stdout)
         local packages = {}
