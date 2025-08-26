@@ -33,7 +33,7 @@ end
 
 function Nuget:_prompt_project()
   local projects = utils.get_projects(false)
-  if vim.tbl_count(projects) == 1 then
+  if #projects == 1 then
     self.project = projects[1]
     self:_add_package()
   else

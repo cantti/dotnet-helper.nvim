@@ -1,8 +1,6 @@
 local utils = require("cshelper.utils")
 local fs = require("cshelper.fs")
 
-local M = {}
-
 local Secrets = {}
 Secrets.__index = Secrets
 
@@ -14,7 +12,8 @@ end
 
 function Secrets:_project_prompt(cb)
   local targets = utils.get_projects(false)
-  if vim.tbl_count(targets) == 1 then
+  if #targets == 1 then
+    self.project = targets[1]
     cb()
   else
     vim.ui.select(targets, {
@@ -55,7 +54,7 @@ function Secrets:_list_secrets()
       if not choice then
         return
       end
-      self:open_secrets_json()
+      self:_open_secrets_json()
       vim.fn.search('"' .. choice.key .. '"')
     end)
   else
@@ -78,9 +77,9 @@ function Secrets:_get_secrets_path()
   return path
 end
 
-function Secrets:_open_secrets_json(project_path)
+function Secrets:_open_secrets_json()
   -- create secrets if does not exist
-  vim.system({ "dotnet", "user-secrets", "init", "-p", project_path }):wait()
+  vim.system({ "dotnet", "user-secrets", "init", "-p", self.project }):wait()
   local secrets_path = assert(self:_get_secrets_path(), "secrets file not found")
   if not fs.file_exists(secrets_path) then
     local buf = vim.api.nvim_create_buf(true, false)
