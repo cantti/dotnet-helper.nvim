@@ -48,8 +48,14 @@ function H.prompt_secret(project, secrets)
 end
 
 ---@param project string
+---@return table? result
+---@return string? err
 H.list_secrets = function(project)
   local output = utils.system_async({ "dotnet", "user-secrets", "list", "-p", project })
+  if output.code ~= 0 then
+    local err = (output and output.stderr ~= "" and output.stderr) or "dotnet secret list failed"
+    return nil, err
+  end
   local secrets = {}
   if string.match(output.stdout, "=") then
     for secret in string.gmatch(output.stdout, "(.-)\n") do
@@ -62,8 +68,9 @@ end
 
 ---@param project string
 ---@return string|nil
+---@return string? err
 H.get_secrets_path = function(project)
-  local out = utils.system_async({
+  local output = utils.system_async({
     "dotnet",
     "user-secrets",
     "list",
@@ -71,9 +78,15 @@ H.get_secrets_path = function(project)
     "-p",
     project,
   })
-  -- be tolerant with wording and endings; escape dot
-  local path = string.match(out.stdout, "Secrets file path (.-)%.\n")
-  return path
+  if output.code ~= 0 then
+    local err = (output and output.stderr ~= "" and output.stderr) or "dotnet secret list failed"
+    return nil, err
+  end
+  local path = string.match(output.stdout, "Secrets file path (.-)%.\n")
+  if not path then
+    return nil, "no secrets path found"
+  end
+  return path, nil
 end
 
 ---@param project string
@@ -102,7 +115,7 @@ M.list = a.void(function()
   if not project then
     return
   end
-  local secrets = H.list_secrets(project)
+  local secrets = assert(H.list_secrets(project))
   H.prompt_secret(project, secrets)
 end)
 
