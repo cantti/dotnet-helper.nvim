@@ -1,36 +1,22 @@
 local utils = require("cshelper.utils")
 local fs = require("cshelper.fs")
+local a = require("plenary.async")
 
 local M = {}
 local H = {}
 
-local function run(cmd, on_done)
-  vim.system(
-    cmd,
-    { text = true },
-    vim.schedule_wrap(function(out)
-      on_done(out)
-    end)
-  )
-end
-
----@param cb fun(project: string)
-function H.project_prompt(cb)
+---@return string|nil
+H.project_prompt = function()
   local targets = utils.get_projects(false)
   if #targets == 1 then
-    cb(targets[1])
+    return targets[1]
   else
-    vim.ui.select(targets, {
+    return utils.select_async(targets, {
       prompt = "Choose project:",
       format_item = function(item)
         return fs.relative_path(item)
       end,
-    }, function(choice)
-      if not choice then
-        return
-      end
-      cb(choice)
-    end)
+    })
   end
 end
 
@@ -45,69 +31,54 @@ function H.prompt_secret(project, secrets)
     vim.notify("No secrets configured for the project", vim.log.levels.WARN)
     return
   end
-
-  -- show keys only to avoid leaking values
-  vim.ui.select(
-    secrets,
-    {
-      prompt = "Choose secret:",
-      format_item = function(item)
-        return string.format("%s = %s", item.key, item.value)
-      end,
-    },
-    vim.schedule_wrap(function(choice)
-      if not choice then
-        return
-      end
-      H.open_secrets_json(project)
-      -- jump after the file is opened/current
-      -- very-nomagic search for the exact "key"
-      local pattern = [[\V"]] .. choice.key:gsub("\\", "\\\\"):gsub('"', '\\"') .. [["]]
-      vim.fn.search(pattern)
-    end)
-  )
+  local choice = utils.select_async(secrets, {
+    prompt = "Choose secret:",
+    format_item = function(item)
+      return string.format("%s = %s", item.key, item.value)
+    end,
+  })
+  if not choice then
+    return
+  end
+  H.open_secrets_json(project)
+  -- jump after the file is opened/current
+  -- very-nomagic search for the exact "key"
+  local pattern = [[\V"]] .. choice.key:gsub("\\", "\\\\"):gsub('"', '\\"') .. [["]]
+  vim.fn.search(pattern)
 end
 
 ---@param project string
----@param cb fun(secrets: SecretItem[])
-function H.list_secrets(project, cb)
-  run({ "dotnet", "user-secrets", "list", "-p", project }, function(output)
-    local secrets = {}
-    local out = output.stdout or ""
-    if out:find("=") then
-      -- robust split handling \r?\n
-      for line in (out .. "\n"):gmatch("(.-)\r?\n") do
-        local key, value = line:match("^(.-)%s*=%s*(.+)$")
-        if key and value then
-          table.insert(secrets, { key = key, value = value })
-        end
-      end
+H.list_secrets = function(project)
+  local output = utils.system_async({ "dotnet", "user-secrets", "list", "-p", project })
+  local secrets = {}
+  if string.match(output.stdout, "=") then
+    for secret in string.gmatch(output.stdout, "(.-)\n") do
+      local key, value = string.match(secret, "(.-) = (.+)")
+      table.insert(secrets, { key = key, value = value })
     end
-    cb(secrets)
-  end)
+  end
+  return secrets
 end
 
 ---@param project string
 ---@return string|nil
-function H.get_secrets_path(project)
-  local out = vim
-    .system({
-      "dotnet",
-      "user-secrets",
-      "list",
-      "--verbose",
-      "-p",
-      project,
-    }, { text = true })
-    :wait()
+H.get_secrets_path = function(project)
+  local out = utils.system_async({
+    "dotnet",
+    "user-secrets",
+    "list",
+    "--verbose",
+    "-p",
+    project,
+  })
   -- be tolerant with wording and endings; escape dot
   local path = string.match(out.stdout, "Secrets file path (.-)%.\n")
   return path
 end
 
 ---@param project string
-function H.open_secrets_json(project)
-  vim.system({ "dotnet", "user-secrets", "init", "-p", project }):wait()
+H.open_secrets_json = function(project)
+  utils.system_async({ "dotnet", "user-secrets", "init", "-p", project })
   local secrets_path = assert(H.get_secrets_path(project), "secrets file not found")
   if not fs.file_exists(secrets_path) then
     local buf = vim.api.nvim_create_buf(true, false)
@@ -126,16 +97,21 @@ function H.open_secrets_json(project)
   end
 end
 
-function M.list()
-  H.project_prompt(function(project)
-    H.list_secrets(project, function(secrets)
-      H.prompt_secret(project, secrets)
-    end)
-  end)
-end
+M.list = a.void(function()
+  local project = H.project_prompt()
+  if not project then
+    return
+  end
+  local secrets = H.list_secrets(project)
+  H.prompt_secret(project, secrets)
+end)
 
-function M.edit()
-  H.project_prompt(H.open_secrets_json)
-end
+M.edit = a.void(function()
+  local project = H.project_prompt()
+  if not project then
+    return
+  end
+  H.open_secrets_json(project)
+end)
 
 return M

@@ -6,7 +6,8 @@ Set of useful commands for dotnet development.
 
 ```lua
 {
-  dir = "cantti/cshelper.nvim",
+  "cantti/cshelper.nvim",
+  dependencies = { "nvim-lua/plenary.nvim" },
   opts = {},
 },
 

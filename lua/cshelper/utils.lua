@@ -1,4 +1,5 @@
 local fs = require("cshelper.fs")
+local a = require("plenary.async")
 
 local M = {}
 
@@ -134,5 +135,22 @@ function M.cur_buff_empty()
   local bufnr = vim.api.nvim_get_current_buf()
   return (vim.api.nvim_buf_line_count(bufnr) <= 1 and #vim.api.nvim_buf_get_lines(bufnr, 0, 1, false)[1] == 0)
 end
+
+---@param s string?
+M.is_empty = function(s)
+  return s == nil or s == ""
+end
+
+M.input_async = a.wrap(function(opts, cb)
+  vim.ui.input(opts, cb)
+end, 2)
+
+M.system_async = a.wrap(function(cmd, callback)
+  vim.system(cmd, { text = true }, vim.schedule_wrap(callback))
+end, 2)
+
+M.select_async = a.wrap(function(items, opts, cb)
+  vim.ui.select(items, opts, cb)
+end, 3)
 
 return M
