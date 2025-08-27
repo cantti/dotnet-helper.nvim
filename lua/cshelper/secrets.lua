@@ -1,20 +1,24 @@
 local utils = require("cshelper.utils")
 local fs = require("cshelper.fs")
 
-local Secrets = {}
-Secrets.__index = Secrets
+local M = {}
+local H = {}
 
-function Secrets:new()
-  local obj = setmetatable({}, Secrets)
-  obj.project = nil
-  return obj
+local function run(cmd, on_done)
+  vim.system(
+    cmd,
+    { text = true },
+    vim.schedule_wrap(function(out)
+      on_done(out)
+    end)
+  )
 end
 
-function Secrets:_project_prompt(cb)
+---@param cb fun(project: string)
+function H.project_prompt(cb)
   local targets = utils.get_projects(false)
   if #targets == 1 then
-    self.project = targets[1]
-    cb()
+    cb(targets[1])
   else
     vim.ui.select(targets, {
       prompt = "Choose project:",
@@ -25,62 +29,86 @@ function Secrets:_project_prompt(cb)
       if not choice then
         return
       end
-      self.project = choice
-      cb()
+      cb(choice)
     end)
   end
 end
 
-function Secrets:_list_secrets()
-  local function get_secrets_tbl()
-    local output = vim.system({ "dotnet", "user-secrets", "list", "-p", self.project }):wait()
-    local secrets_tbl = {}
-    if string.match(output.stdout, "=") then
-      for secret in string.gmatch(output.stdout, "(.-)\n") do
-        local key, value = string.match(secret, "(.-) = (.+)")
-        table.insert(secrets_tbl, { key = key, value = value })
-      end
-    end
-    return secrets_tbl
+---@class SecretItem
+---@field key string
+---@field value string
+
+---@param project string
+---@param secrets SecretItem[]
+function H.prompt_secret(project, secrets)
+  if not secrets or vim.tbl_isempty(secrets) then
+    vim.notify("No secrets configured for the project", vim.log.levels.WARN)
+    return
   end
-  local secrets = get_secrets_tbl()
-  if not vim.tbl_isempty(secrets) then
-    vim.ui.select(secrets, {
+
+  -- show keys only to avoid leaking values
+  vim.ui.select(
+    secrets,
+    {
       prompt = "Choose secret:",
       format_item = function(item)
         return string.format("%s = %s", item.key, item.value)
       end,
-    }, function(choice)
+    },
+    vim.schedule_wrap(function(choice)
       if not choice then
         return
       end
-      self:_open_secrets_json()
-      vim.fn.search('"' .. choice.key .. '"')
+      H.open_secrets_json(project)
+      -- jump after the file is opened/current
+      -- very-nomagic search for the exact "key"
+      local pattern = [[\V"]] .. choice.key:gsub("\\", "\\\\"):gsub('"', '\\"') .. [["]]
+      vim.fn.search(pattern)
     end)
-  else
-    vim.notify("No secrets configured for the project", vim.log.levels.WARN)
-  end
+  )
 end
 
-function Secrets:_get_secrets_path()
-  local output = vim
+---@param project string
+---@param cb fun(secrets: SecretItem[])
+function H.list_secrets(project, cb)
+  run({ "dotnet", "user-secrets", "list", "-p", project }, function(output)
+    local secrets = {}
+    local out = output.stdout or ""
+    if out:find("=") then
+      -- robust split handling \r?\n
+      for line in (out .. "\n"):gmatch("(.-)\r?\n") do
+        local key, value = line:match("^(.-)%s*=%s*(.+)$")
+        if key and value then
+          table.insert(secrets, { key = key, value = value })
+        end
+      end
+    end
+    cb(secrets)
+  end)
+end
+
+---@param project string
+---@return string|nil
+function H.get_secrets_path(project)
+  local out = vim
     .system({
       "dotnet",
       "user-secrets",
       "list",
       "--verbose",
       "-p",
-      self.project,
+      project,
     }, { text = true })
     :wait()
-  local path = string.match(output.stdout, "Secrets file path (.-)%.\n")
+  -- be tolerant with wording and endings; escape dot
+  local path = string.match(out.stdout, "Secrets file path (.-)%.\n")
   return path
 end
 
-function Secrets:_open_secrets_json()
-  -- create secrets if does not exist
-  vim.system({ "dotnet", "user-secrets", "init", "-p", self.project }):wait()
-  local secrets_path = assert(self:_get_secrets_path(), "secrets file not found")
+---@param project string
+function H.open_secrets_json(project)
+  vim.system({ "dotnet", "user-secrets", "init", "-p", project }):wait()
+  local secrets_path = assert(H.get_secrets_path(project), "secrets file not found")
   if not fs.file_exists(secrets_path) then
     local buf = vim.api.nvim_create_buf(true, false)
     vim.api.nvim_buf_set_name(buf, secrets_path)
@@ -98,16 +126,16 @@ function Secrets:_open_secrets_json()
   end
 end
 
-function Secrets:list()
-  self:_project_prompt(function()
-    self:_list_secrets()
+function M.list()
+  H.project_prompt(function(project)
+    H.list_secrets(project, function(secrets)
+      H.prompt_secret(project, secrets)
+    end)
   end)
 end
 
-function Secrets:edit()
-  self:_project_prompt(function()
-    self:_open_secrets_json()
-  end)
+function M.edit()
+  H.project_prompt(H.open_secrets_json)
 end
 
-return Secrets
+return M

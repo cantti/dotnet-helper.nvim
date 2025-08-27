@@ -1,5 +1,3 @@
-local nuget = require("cshelper.nuget"):new()
-local secrets = require("cshelper.secrets"):new()
 local utils = require("cshelper.utils")
 
 local H = {}
@@ -45,19 +43,39 @@ function M.setup(opts)
 end
 
 function M.secrets_list()
-  secrets:list()
+  require("cshelper.secrets").list()
 end
 
 function M.secrets_edit()
-  secrets:edit()
+  require("cshelper.secrets").edit()
 end
 
 function M.nuget_search()
-  nuget:search()
+  require("cshelper.nuget").search()
 end
 
 function M.templates()
   require("cshelper.template_chooser").show()
+end
+
+function M.templates_class()
+  require("cshelper.templates").class()
+end
+
+function M.templates_api_controller()
+  require("cshelper.templates").api_controller()
+end
+
+function M.templates_method()
+  require("cshelper.templates").method()
+end
+
+function M.fix_ns_buf()
+  require("cshelper.fix_ns").fix_ns_buf()
+end
+
+function M.fix_ns_dir()
+  require("cshelper.fix_ns").fix_ns_dir()
 end
 
 return M

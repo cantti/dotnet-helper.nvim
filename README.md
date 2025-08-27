@@ -30,6 +30,18 @@ vim.keymap.set("n", "<leader>#", require("cshelper").secrets_list() end)
 
 Below are examples of how to use the available commands in `cshelper`:
 
+### Templates (snippets)
+
+```lua
+-- choose template from picker
+require("cshelper").templates()
+
+-- individual templates
+require("cshelper").templates_class()
+require("cshelper").templates_api_controller()
+require("cshelper").templates_method()
+```
+
 ### Fix namespace for buffer
 
 ```lua
@@ -42,18 +54,6 @@ require("cshelper").fix_ns_buf()
 require("cshelper").fix_ns_dir()
 ```
 
-### Create New Class
-
-```lua
-require("cshelper").new_class({ use_block_ns = false })
-```
-
-### Create New API Controller
-
-```lua
-require("cshelper").new_api_controller({ use_block_ns = false })
-```
-
 ### List Secrets
 
 ```lua
@@ -64,6 +64,12 @@ require("cshelper").secrets_list()
 
 ```lua
 require("cshelper").secrets_edit()
+```
+
+### Search and install nuget package
+
+```lua
+require("cshelper").nuget_search()
 ```
 
 ## Alternatives and similar plugins
