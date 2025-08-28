@@ -1,6 +1,6 @@
 local utils = require("cshelper.utils")
 local fs = require("cshelper.fs")
-local a = require("plenary.async")
+local a = require("cshelper.async")
 
 local M = {}
 local H = {}
@@ -11,7 +11,7 @@ H.project_prompt = function()
   if #targets == 1 then
     return targets[1]
   else
-    return utils.select_async(targets, {
+    return a.select(targets, {
       prompt = "Choose project:",
       format_item = function(item)
         return fs.relative_path(item)
@@ -26,12 +26,12 @@ end
 
 ---@param project string
 ---@param secrets SecretItem[]
-function H.prompt_secret(project, secrets)
+H.prompt_secret = function(project, secrets)
   if not secrets or vim.tbl_isempty(secrets) then
     vim.notify("No secrets configured for the project", vim.log.levels.WARN)
     return
   end
-  local choice = utils.select_async(secrets, {
+  local choice = a.select(secrets, {
     prompt = "Choose secret:",
     format_item = function(item)
       return string.format("%s = %s", item.key, item.value)
@@ -51,7 +51,7 @@ end
 ---@return table? result
 ---@return string? err
 H.list_secrets = function(project)
-  local output = utils.system_async({ "dotnet", "user-secrets", "list", "-p", project })
+  local output = a.system({ "dotnet", "user-secrets", "list", "-p", project })
   if output.code ~= 0 then
     local err = (output and output.stderr ~= "" and output.stderr) or "dotnet secret list failed"
     return nil, err
@@ -70,7 +70,7 @@ end
 ---@return string|nil
 ---@return string? err
 H.get_secrets_path = function(project)
-  local output = utils.system_async({
+  local output = a.system({
     "dotnet",
     "user-secrets",
     "list",
@@ -91,7 +91,7 @@ end
 
 ---@param project string
 H.open_secrets_json = function(project)
-  utils.system_async({ "dotnet", "user-secrets", "init", "-p", project })
+  a.system({ "dotnet", "user-secrets", "init", "-p", project })
   local secrets_path = assert(H.get_secrets_path(project), "secrets file not found")
   if not fs.file_exists(secrets_path) then
     local buf = vim.api.nvim_create_buf(true, false)
@@ -110,7 +110,7 @@ H.open_secrets_json = function(project)
   end
 end
 
-M.list = a.void(function()
+M.list = a.async(function()
   local project = H.project_prompt()
   if not project then
     return
@@ -119,7 +119,7 @@ M.list = a.void(function()
   H.prompt_secret(project, secrets)
 end)
 
-M.edit = a.void(function()
+M.edit = a.async(function()
   local project = H.project_prompt()
   if not project then
     return

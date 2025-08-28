@@ -1,5 +1,4 @@
 local fs = require("cshelper.fs")
-local a = require("plenary.async")
 
 local M = {}
 
@@ -139,22 +138,6 @@ end
 ---@param s string?
 M.is_empty = function(s)
   return s == nil or s == ""
-end
-
-M.input_async = a.wrap(function(opts, cb)
-  vim.ui.input(opts, cb)
-end, 2)
-
-M.system_async = a.wrap(function(cmd, callback)
-  vim.system(cmd, { text = true }, vim.schedule_wrap(callback))
-end, 2)
-
-M.await_select = function(items, opts)
-  local co = coroutine.running()
-  vim.ui.select(items, opts, function(result)
-    coroutine.resume(co, result)
-  end)
-  return coroutine.yield()
 end
 
 return M
