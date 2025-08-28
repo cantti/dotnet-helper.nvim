@@ -1,6 +1,6 @@
 local utils = require("cshelper.utils")
 local fs = require("cshelper.fs")
-local a = require("plenary.async")
+local a = require("cshelper.async")
 
 local M = {}
 local H = {}
@@ -16,7 +16,7 @@ local H = {}
 ---@param packages NugetPackage[]
 ---@return NugetPackage|nil
 H.prompt_package = function(packages)
-  local package = utils.select_async(packages, {
+  return a.select(packages, {
     prompt = "Choose package:",
     ---@param item NugetPackage
     format_item = function(item)
@@ -24,7 +24,6 @@ H.prompt_package = function(packages)
       return string.format("%s %s (%s) - %s", item.id, item.version or "?", item.source or "nuget", desc)
     end,
   })
-  return package
 end
 
 ---@return string|nil
@@ -35,7 +34,7 @@ H.prompt_project = function()
   elseif #projects == 1 then
     return projects[1]
   else
-    return utils.select_async(projects, {
+    return a.select(projects, {
       prompt = "Choose project:",
       format_item = function(item)
         return fs.relative_path(item)
@@ -44,12 +43,12 @@ H.prompt_project = function()
   end
 end
 
---- ---@param package NugetPackage
---- ---@param version string
---- ---@param project string
+---@param package NugetPackage
+---@param version string
+---@param project string
 H.add_package = function(package, version, project)
   local args = { "dotnet", "add", project, "package", package.id, "--version", version }
-  local output = utils.system_async(args)
+  local output = a.system(args)
   if output.code == 0 then
     vim.cmd("edit " .. project)
     vim.notify(string.format("Added %s %s to %s", package.id, version, fs.relative_path(project)), vim.log.levels.INFO)
@@ -58,12 +57,12 @@ H.add_package = function(package, version, project)
     vim.notify(msg, vim.log.levels.ERROR)
   end
 end
-
+---
 ---@param input string
 ---@return NugetPackage[]? result
 ---@return string? err
 H.fetch_packages = function(input)
-  local output = utils.system_async({
+  local output = a.system({
     "dotnet",
     "package",
     "search",
@@ -95,8 +94,8 @@ H.fetch_packages = function(input)
   return packages
 end
 
-M.search = a.void(function()
-  local input = utils.input_async({ prompt = "Query: " })
+M.search = a.async(function()
+  local input = a.input({ prompt = "Query: " })
   if utils.is_empty(input) then
     return
   end
@@ -109,7 +108,7 @@ M.search = a.void(function()
   if not package then
     return
   end
-  local version = utils.input_async({ prompt = "Version: ", default = package.version })
+  local version = a.input({ prompt = "Version: ", default = package.version })
   if utils.is_empty(version) then
     return
   end

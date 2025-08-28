@@ -149,8 +149,12 @@ M.system_async = a.wrap(function(cmd, callback)
   vim.system(cmd, { text = true }, vim.schedule_wrap(callback))
 end, 2)
 
-M.select_async = a.wrap(function(items, opts, cb)
-  vim.ui.select(items, opts, cb)
-end, 3)
+M.await_select = function(items, opts)
+  local co = coroutine.running()
+  vim.ui.select(items, opts, function(result)
+    coroutine.resume(co, result)
+  end)
+  return coroutine.yield()
+end
 
 return M
