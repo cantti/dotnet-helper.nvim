@@ -12,11 +12,11 @@ function H.add_autocommands()
     group = vim.api.nvim_create_augroup("Cshelper", { clear = true }),
     pattern = "*.cs",
     callback = function()
-      if utils.cur_buff_empty() then
-        vim.schedule(function()
+      vim.schedule(function()
+        if utils.cur_buff_empty() then
           require("cshelper.templates").insert_class({ block_ns = M.opts.autocommands.use_block_ns })
-        end)
-      end
+        end
+      end)
     end,
   })
 end
