@@ -47,7 +47,12 @@ end
 ---@param version string
 ---@param project string
 H.add_package = function(package, version, project)
-  local args = { "dotnet", "add", project, "package", package.id, "--version", version }
+  local args
+  if utils.dotnet_10_async() then
+    args = { "dotnet", "package", "add", package.id, "--version", version, "--project", project }
+  else
+    args = { "dotnet", "add", project, "package", package.id, "--version", version }
+  end
   local output = a.system(args)
   if output.code == 0 then
     vim.cmd("edit " .. project)

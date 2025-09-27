@@ -1,4 +1,5 @@
 local fs = require("cshelper.fs")
+local a = require("cshelper.async")
 
 local M = {}
 
@@ -138,6 +139,30 @@ end
 ---@param s string?
 M.is_empty = function(s)
   return s == nil or s == ""
+end
+
+local cached_dotnet_10_value = nil
+
+function M.dotnet_10_async()
+  if cached_dotnet_10_value ~= nil then
+    return cached_dotnet_10_value
+  end
+
+  local result = a.system({ "dotnet", "--version" })
+
+  if not result or not result.stdout then
+    error("Failed to retrieve .NET version: no stdout from `dotnet --version`")
+  end
+
+  local major = tonumber(result.stdout:match("^%d+"))
+
+  if not major then
+    error("Failed to parse .NET version from: " .. tostring(result.stdout))
+  end
+
+  cached_dotnet_10_value = major > 10
+
+  return cached_dotnet_10_value
 end
 
 return M
