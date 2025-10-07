@@ -1,75 +1,105 @@
-# cshelper.nvim
+# dotnet-helper.nvim
 
-Set of useful commands for dotnet development.
+dotnet-helper.nvim provides a collection of lightweight commands and utilities for .NET development in Neovim.
+It’s designed to complement the standard LSP workflow — adding only the essential features missing from a typical Neovim + LSP configuration.
 
 ## Installation:
 
+Using lazy:
+
 ```lua
 {
-  "cantti/cshelper.nvim",
-  opts = {},
+  "cantti/dotnet-helper.nvim",
+  -- default config
+  opts = {
+    autocommands = {
+      enabled = true,
+      use_block_ns = false,
+    },
+    usercommands = {
+      enabled = true,
+      use_block_ns = false,
+    },
+  },
 },
 
 ```
 
-## Usage
+## New C# file
 
-Convenient way is to map command picker:
+The plugin can insert C# class when entering an empty C# file.
 
-```lua
-vim.keymap.set("n", "<leader>#", function() require("cshelper").commands() end)
-```
+## Commands
 
-Or map individual commands:
-
-```lua
-vim.keymap.set("n", "<leader>#", require("cshelper").secrets_list() end)
-```
-
-## Individual Commands
-
-Below are examples of how to use the available commands in `cshelper`:
+This plugin offers a collection of helper functions implemented with Neovim’s Lua API.
+Many of them are also accessible via user commands under the `:Dotnet` namespace.
 
 ### Templates (snippets)
 
 ```lua
 -- choose template from picker
-require("cshelper").templates()
+require("dotnet-helper").templates()
 
 -- individual templates
-require("cshelper").templates_class()
-require("cshelper").templates_api_controller()
-require("cshelper").templates_method()
+require("dotnet-helper").templates_class()
+require("dotnet-helper").templates_api_controller()
+require("dotnet-helper").templates_method()
 ```
 
 ### Fix namespace for buffer
 
 ```lua
-require("cshelper").fix_ns_buf()
+require("dotnet-helper").fix_ns_buf()
+```
+
+or
+
+```
+:Dotnet ns
 ```
 
 ### Fix namespace for directory
 
 ```lua
-require("cshelper").fix_ns_dir()
+require("dotnet-helper").fix_ns_dir()
 ```
 
-### List Secrets
+or
 
-```lua
-require("cshelper").secrets_list()
+```
+:Dotnet ns --dir
 ```
 
 ### Edit Secrets
 
 ```lua
-require("cshelper").secrets_edit()
+require("dotnet-helper").secrets_edit()
+```
+
+or
+
+```
+:Dotnet secrets
+```
+
+### List Secrets
+
+```lua
+require("dotnet-helper").secrets_list()
+```
+
+```
+:Dotnet secrets --list
 ```
 
 ### Search and install nuget package
 
 ```lua
-require("cshelper").nuget_search()
+require("dotnet-helper").nuget_search()
+```
+
+```
+:Dotnet nuget
 ```
 
 ## Alternatives and similar plugins

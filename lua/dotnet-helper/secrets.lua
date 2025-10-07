@@ -1,6 +1,6 @@
-local utils = require("cshelper.utils")
-local fs = require("cshelper.fs")
-local a = require("cshelper.async")
+local utils = require("dotnet-helper.utils")
+local fs = require("dotnet-helper.fs")
+local a = require("dotnet-helper.async")
 
 local M = {}
 local H = {}

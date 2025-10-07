@@ -1,4 +1,4 @@
-local utils = require("cshelper.utils")
+local utils = require("dotnet-helper.utils")
 
 local M = {}
 

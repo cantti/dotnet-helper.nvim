@@ -1,20 +1,20 @@
-local utils = require("cshelper.utils")
+local utils = require("dotnet-helper.utils")
 
 local H = {}
 
----@class CshelperModule
----@field opts CshelperOpts|nil
+---@class DotnetHelperModule
+---@field opts DotnetHelperOpts|nil
 local M = {}
 
 function H.add_autocommands()
   vim.api.nvim_create_autocmd("BufWinEnter", {
     desc = "Insert C# class when entering an empty C# file",
-    group = vim.api.nvim_create_augroup("Cshelper", { clear = true }),
+    group = vim.api.nvim_create_augroup("dotnet-helper", { clear = true }),
     pattern = "*.cs",
     callback = function()
       vim.schedule(function()
         if utils.cur_buff_empty() then
-          require("cshelper.templates").insert_class({ block_ns = M.opts.autocommands.use_block_ns })
+          require("dotnet-helper.templates").insert_class({ block_ns = M.opts.autocommands.use_block_ns })
         end
       end)
     end,
@@ -25,9 +25,9 @@ local cs_subcommands = {
   secrets = {
     impl = function(args)
       if vim.tbl_contains(args, "--list") then
-        require("cshelper").secrets_list()
+        require("dotnet-helper").secrets_list()
       else
-        require("cshelper").secrets_edit()
+        require("dotnet-helper").secrets_edit()
       end
     end,
     complete = function(subcmd_arg_lead)
@@ -45,9 +45,9 @@ local cs_subcommands = {
   ns = {
     impl = function(args)
       if vim.tbl_contains(args, "--dir") then
-        require("cshelper").fix_ns_buf()
+        require("dotnet-helper").fix_ns_buf()
       else
-        require("cshelper").fix_ns_dir()
+        require("dotnet-helper").fix_ns_dir()
       end
     end,
     complete = function(subcmd_arg_lead)
@@ -61,7 +61,11 @@ local cs_subcommands = {
         end)
         :totable()
     end,
-    -- ...
+  },
+  nuget = {
+    impl = function(args)
+      require("dotnet-helper").nuget_search()
+    end,
   },
 }
 
@@ -73,7 +77,7 @@ local function cs_command(opts)
   local args = #fargs > 1 and vim.list_slice(fargs, 2, #fargs) or {}
   local subcommand = cs_subcommands[subcommand_key]
   if not subcommand then
-    vim.notify("Rocks: Unknown command: " .. subcommand_key, vim.log.levels.ERROR)
+    vim.notify("Dotnet: Unknown command: " .. subcommand_key, vim.log.levels.ERROR)
     return
   end
   -- Invoke the subcommand
@@ -82,18 +86,18 @@ end
 
 -- inspired by https://github.com/lumen-oss/nvim-best-practices
 function H.add_usercommands()
-  vim.api.nvim_create_user_command("Cs", cs_command, {
+  vim.api.nvim_create_user_command("Dotnet", cs_command, {
     nargs = "+",
     desc = "My awesome command with subcommand completions",
     complete = function(arg_lead, cmdline, _)
       -- Get the subcommand.
-      local subcmd_key, subcmd_arg_lead = cmdline:match("^['<,'>]*Cs[!]*%s(%S+)%s(.*)$")
+      local subcmd_key, subcmd_arg_lead = cmdline:match("^['<,'>]*Dotnet[!]*%s(%S+)%s(.*)$")
       if subcmd_key and subcmd_arg_lead and cs_subcommands[subcmd_key] and cs_subcommands[subcmd_key].complete then
         -- The subcommand has completions. Return them.
         return cs_subcommands[subcmd_key].complete(subcmd_arg_lead)
       end
       -- Check if cmdline is a subcommand
-      if cmdline:match("^['<,'>]*Cs[!]*%s+%w*$") then
+      if cmdline:match("^['<,'>]*Dotnet[!]*%s+%w*$") then
         -- Filter subcommands that match
         local subcommand_keys = vim.tbl_keys(cs_subcommands)
         return vim
@@ -108,17 +112,17 @@ function H.add_usercommands()
   })
 end
 
----@class CshelperAutocmdOpts
+---@class DotnetHelperAutocmdOpts
 ---@field enabled boolean
 ---@field use_block_ns boolean
 
----@class CshelperUsercmdOpts
+---@class DotnetHelperUsercmdOpts
 ---@field enabled boolean
 ---@field use_block_ns boolean
 
----@class CshelperOpts
----@field autocommands CshelperAutocmdOpts
----@field usercommands CshelperUsercmdOpts
+---@class DotnetHelperOpts
+---@field autocommands DotnetHelperAutocmdOpts
+---@field usercommands DotnetHelperUsercmdOpts
 local defaults = {
   autocommands = {
     enabled = true,
@@ -142,39 +146,39 @@ function M.setup(opts)
 end
 
 function M.secrets_list()
-  require("cshelper.secrets").list()
+  require("dotnet-helper.secrets").list()
 end
 
 function M.secrets_edit()
-  require("cshelper.secrets").edit()
+  require("dotnet-helper.secrets").edit()
 end
 
 function M.nuget_search()
-  require("cshelper.nuget").search()
+  require("dotnet-helper.nuget").search()
 end
 
 function M.templates()
-  require("cshelper.template_chooser").show()
+  require("dotnet-helper.template_chooser").show()
 end
 
 function M.templates_class()
-  require("cshelper.templates").class()
+  require("dotnet-helper.templates").class()
 end
 
 function M.templates_api_controller()
-  require("cshelper.templates").api_controller()
+  require("dotnet-helper.templates").api_controller()
 end
 
 function M.templates_method()
-  require("cshelper.templates").method()
+  require("dotnet-helper.templates").method()
 end
 
 function M.fix_ns_buf()
-  require("cshelper.fix_ns").fix_ns_buf()
+  require("dotnet-helper.fix_ns").fix_ns_buf()
 end
 
 function M.fix_ns_dir()
-  require("cshelper.fix_ns").fix_ns_dir()
+  require("dotnet-helper.fix_ns").fix_ns_dir()
 end
 
 return M

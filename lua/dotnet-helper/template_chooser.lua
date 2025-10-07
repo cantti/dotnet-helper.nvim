@@ -1,5 +1,5 @@
 local M = {}
-local templates = require("cshelper.templates")
+local templates = require("dotnet-helper.templates")
 
 local options = {
   {
