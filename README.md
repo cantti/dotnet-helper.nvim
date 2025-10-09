@@ -52,6 +52,12 @@ require("dotnet-helper").templates_api_controller()
 require("dotnet-helper").templates_method()
 ```
 
+or
+
+```
+:Dotnet templates
+```
+
 ### Fix namespace for buffer
 
 ```lua
@@ -107,6 +113,12 @@ require("dotnet-helper").nuget_search()
 ```
 :Dotnet nuget
 ```
+
+## Plans
+
+- Add basic `dotnet ef` support. Add migrations, update database
+- Add `dotnet new` support for common projects
+- Add basic `dotnet sln` support
 
 ## Alternatives and similar plugins
 

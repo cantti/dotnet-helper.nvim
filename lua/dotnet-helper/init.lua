@@ -25,9 +25,9 @@ local cs_subcommands = {
   secrets = {
     impl = function(args)
       if vim.tbl_contains(args, "--list") then
-        require("dotnet-helper").secrets_list()
+        M.secrets_list()
       else
-        require("dotnet-helper").secrets_edit()
+        M.secrets_edit()
       end
     end,
     complete = function(subcmd_arg_lead)
@@ -45,9 +45,9 @@ local cs_subcommands = {
   ns = {
     impl = function(args)
       if vim.tbl_contains(args, "--dir") then
-        require("dotnet-helper").fix_ns_buf()
+        M.fix_ns_buf()
       else
-        require("dotnet-helper").fix_ns_dir()
+        M.fix_ns_dir()
       end
     end,
     complete = function(subcmd_arg_lead)
@@ -64,7 +64,12 @@ local cs_subcommands = {
   },
   nuget = {
     impl = function(args)
-      require("dotnet-helper").nuget_search()
+      M.nuget_search()
+    end,
+  },
+  templates = {
+    impl = function(args)
+      M.templates()
     end,
   },
 }
