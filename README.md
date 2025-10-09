@@ -12,12 +12,18 @@ Using lazy:
   "cantti/dotnet-helper.nvim",
   -- default config
   opts = {
+    -- create autocommands to insert c# class when enterin an empty C# file
     autocommands = {
       enabled = true,
+      -- use block {} namespace for new files
       use_block_ns = false,
     },
+
+    -- create :Dotnet ... user commands
+    -- if not enabled lua api can be used
     usercommands = {
       enabled = true,
+      -- use block {} namespace for templates
       use_block_ns = false,
     },
   },

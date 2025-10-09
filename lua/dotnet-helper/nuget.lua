@@ -48,7 +48,7 @@ end
 ---@param project string
 H.add_package = function(package, version, project)
   local args
-  if utils.dotnet_10_async() then
+  if utils.is_dotnet_10() then
     args = { "dotnet", "package", "add", package.id, "--version", version, "--project", project }
   else
     args = { "dotnet", "add", project, "package", package.id, "--version", version }
@@ -64,8 +64,7 @@ H.add_package = function(package, version, project)
 end
 ---
 ---@param input string
----@return NugetPackage[]? result
----@return string? err
+---@return NugetPackage[] result
 H.fetch_packages = function(input)
   local output = a.system({
     "dotnet",
@@ -81,7 +80,7 @@ H.fetch_packages = function(input)
   })
   if output.code ~= 0 then
     local err = (output and output.stderr ~= "" and output.stderr) or "dotnet package search failed"
-    return nil, err
+    error(err)
   end
   local result = vim.json.decode(output.stdout)
   local packages = {}
@@ -104,7 +103,7 @@ M.search = a.async(function()
   if utils.is_empty(input) then
     return
   end
-  local packages = assert(H.fetch_packages(input))
+  local packages = H.fetch_packages(input)
   if #packages == 0 then
     vim.notify("No packages found for that query.", vim.log.levels.INFO)
     return

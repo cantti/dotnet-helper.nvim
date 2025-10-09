@@ -143,7 +143,7 @@ end
 
 local cached_dotnet_10_value = nil
 
-function M.dotnet_10_async()
+function M.is_dotnet_10()
   if cached_dotnet_10_value ~= nil then
     return cached_dotnet_10_value
   end
