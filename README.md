@@ -128,7 +128,6 @@ require("dotnet-helper").migrations()
 
 ## Plans
 
-- Add basic `dotnet ef` support. Add migrations, update database
 - Add `dotnet new` support for common projects
 - Add basic `dotnet sln` support
 
