@@ -114,6 +114,18 @@ require("dotnet-helper").nuget_search()
 :Dotnet nuget
 ```
 
+### EF Core migrations actions
+
+Supported actions: add, remove list.
+
+```lua
+require("dotnet-helper").migrations()
+```
+
+```
+:Dotnet migrations
+```
+
 ## Plans
 
 - Add basic `dotnet ef` support. Add migrations, update database

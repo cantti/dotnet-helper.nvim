@@ -72,6 +72,11 @@ local cs_subcommands = {
       M.templates()
     end,
   },
+  migrations = {
+    impl = function(args)
+      M.migrations()
+    end,
+  },
 }
 
 ---@param opts table
@@ -184,6 +189,10 @@ end
 
 function M.fix_ns_dir()
   require("dotnet-helper.fix_ns").fix_ns_dir()
+end
+
+function M.migrations()
+  require("dotnet-helper.ef").migrations()
 end
 
 return M

@@ -165,4 +165,18 @@ function M.is_dotnet_10()
   return cached_dotnet_10_value
 end
 
+--- @param text string  The full multiline text to filter.
+--- @param prefix "data"|"error"|"info"  The allowed line prefix.
+--- @return string  All matching lines concatenated with "\n".
+function M.filter_dotnet_output(text, prefix)
+  local out = {}
+  for line in text:gmatch("[^\r\n]+") do
+    local data = line:match("^" .. prefix .. ":%s*(.*)$")
+    if data then
+      table.insert(out, data)
+    end
+  end
+  return table.concat(out, "\n")
+end
+
 return M
