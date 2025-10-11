@@ -52,9 +52,7 @@ require("dotnet-helper").templates_api_controller()
 require("dotnet-helper").templates_method()
 ```
 
-or
-
-```
+```sh
 :Dotnet templates
 ```
 
@@ -64,9 +62,7 @@ or
 require("dotnet-helper").fix_ns_buf()
 ```
 
-or
-
-```
+```sh
 :Dotnet ns
 ```
 
@@ -76,9 +72,7 @@ or
 require("dotnet-helper").fix_ns_dir()
 ```
 
-or
-
-```
+```sh
 :Dotnet ns --dir
 ```
 
@@ -88,9 +82,7 @@ or
 require("dotnet-helper").secrets_edit()
 ```
 
-or
-
-```
+```sh
 :Dotnet secrets
 ```
 
@@ -100,7 +92,7 @@ or
 require("dotnet-helper").secrets_list()
 ```
 
-```
+```sh
 :Dotnet secrets --list
 ```
 
@@ -110,7 +102,7 @@ require("dotnet-helper").secrets_list()
 require("dotnet-helper").nuget_search()
 ```
 
-```
+```sh
 :Dotnet nuget
 ```
 
@@ -122,7 +114,7 @@ Supported actions: add, remove list.
 require("dotnet-helper").migrations()
 ```
 
-```
+```sh
 :Dotnet migrations
 ```
 
