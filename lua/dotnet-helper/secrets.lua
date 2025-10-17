@@ -5,20 +5,7 @@ local a = require("dotnet-helper.async")
 local M = {}
 local H = {}
 
----@return string|nil
-H.project_prompt = function()
-  local targets = utils.get_projects(false)
-  if #targets == 1 then
-    return targets[1]
-  else
-    return a.select(targets, {
-      prompt = "Choose project:",
-      format_item = function(item)
-        return fs.relative_path(item)
-      end,
-    })
-  end
-end
+H.project = nil
 
 ---@class SecretItem
 ---@field key string
@@ -111,20 +98,20 @@ H.open_secrets_json = function(project)
 end
 
 M.list = a.async(function()
-  local project = H.project_prompt()
-  if not project then
+  H.project = utils.prompt_project("Choose project:", H.project)
+  if not H.project then
     return
   end
-  local secrets = assert(H.list_secrets(project))
-  H.prompt_secret(project, secrets)
+  local secrets = assert(H.list_secrets(H.project))
+  H.prompt_secret(H.project, secrets)
 end)
 
 M.edit = a.async(function()
-  local project = H.project_prompt()
-  if not project then
+  H.project = utils.prompt_project("Choose project:", H.project)
+  if not H.project then
     return
   end
-  H.open_secrets_json(project)
+  H.open_secrets_json(H.project)
 end)
 
 return M

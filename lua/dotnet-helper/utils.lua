@@ -179,4 +179,31 @@ function M.filter_dotnet_output(text, prefix)
   return table.concat(out, "\n")
 end
 
+---@return string|nil
+M.prompt_project = function(prompt, last)
+  local projects = M.get_projects(false)
+  if #projects == 0 then
+    vim.notify("No projects found in this workspace.", vim.log.levels.WARN)
+  elseif #projects == 1 then
+    return projects[1]
+  else
+    if last ~= nil then
+      projects = vim.tbl_filter(function(x)
+        return x ~= last
+      end, projects)
+      table.insert(projects, 1, last)
+    end
+    return a.select(projects, {
+      prompt = prompt,
+      format_item = function(item)
+        local rel_path = fs.relative_path(item)
+        if last == item then
+          return rel_path .. " (Last selected)"
+        end
+        return rel_path
+      end,
+    })
+  end
+end
+
 return M

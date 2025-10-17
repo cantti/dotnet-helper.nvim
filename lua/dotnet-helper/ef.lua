@@ -5,6 +5,9 @@ local a = require("dotnet-helper.async")
 local M = {}
 local H = {}
 
+H.project = nil
+H.startup = nil
+
 --- @param output table
 --- @param prefix "data"|"info"
 H.notify = function(output, prefix)
@@ -17,43 +20,28 @@ H.notify = function(output, prefix)
   end
 end
 
-H.prompt_project = function(prompt)
-  local projects = utils.get_projects(false)
-  if #projects == 0 then
-    vim.notify("No projects found in this workspace.", vim.log.levels.WARN)
-  elseif #projects == 1 then
-    return projects[1]
-  else
-    return a.select(projects, {
-      prompt = prompt,
-      format_item = function(item)
-        return fs.relative_path(item)
-      end,
-    })
-  end
-end
-
 H.migration_add = function()
-  local project = H.prompt_project("Choose project:")
-  local startup = H.prompt_project("Choose startup project:")
+  H.project = utils.prompt_project("Choose project:", H.project)
+  H.startup = utils.prompt_project("Choose startup project:", H.startup)
   local name = a.input({ prompt = "Migration name: " })
-  local args = { "dotnet", "ef", "migrations", "add", "--prefix-output", "-p", project, "-s", startup, name }
+  local args = { "dotnet", "ef", "migrations", "add", "--prefix-output", "-p", H.project, "-s", H.startup, name }
   local output = a.system(args)
   H.notify(output, "info")
 end
 
 H.migration_remove = function()
-  local project = H.prompt_project("Choose project:")
-  local startup = H.prompt_project("Choose startup project:")
-  local args = { "dotnet", "ef", "migrations", "remove", "--force", "--prefix-output", "-p", project, "-s", startup }
+  H.project = utils.prompt_project("Choose project:", H.project)
+  H.startup = utils.prompt_project("Choose startup project:", H.startup)
+  local args =
+    { "dotnet", "ef", "migrations", "remove", "--force", "--prefix-output", "-p", H.project, "-s", H.startup }
   local output = a.system(args)
   H.notify(output, "info")
 end
 
 H.migration_list = function()
-  local project = H.prompt_project("Choose project:")
-  local startup = H.prompt_project("Choose startup project:")
-  local args = { "dotnet", "ef", "migrations", "list", "--prefix-output", "-p", project, "-s", startup }
+  H.project = utils.prompt_project("Choose project:", H.project)
+  H.startup = utils.prompt_project("Choose startup project:", H.startup)
+  local args = { "dotnet", "ef", "migrations", "list", "--prefix-output", "-p", H.project, "-s", H.startup }
   local output = a.system(args)
   H.notify(output, "data")
 end
