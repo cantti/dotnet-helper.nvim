@@ -5,6 +5,8 @@ local a = require("dotnet-helper.async")
 local M = {}
 local H = {}
 
+H.project = nil
+
 ---@class NugetPackage
 ---@field id string
 ---@field version string
@@ -24,23 +26,6 @@ H.prompt_package = function(packages)
       return string.format("%s %s (%s) - %s", item.id, item.version or "?", item.source or "nuget", desc)
     end,
   })
-end
-
----@return string|nil
-H.prompt_project = function()
-  local projects = utils.get_projects(false)
-  if #projects == 0 then
-    vim.notify("No projects found in this workspace.", vim.log.levels.WARN)
-  elseif #projects == 1 then
-    return projects[1]
-  else
-    return a.select(projects, {
-      prompt = "Choose project:",
-      format_item = function(item)
-        return fs.relative_path(item)
-      end,
-    })
-  end
 end
 
 ---@param package NugetPackage
@@ -116,11 +101,11 @@ M.search = a.async(function()
   if utils.is_empty(version) then
     return
   end
-  local project = H.prompt_project()
-  if not project then
+  H.project = utils.prompt_project("Choose project: ", H.project)
+  if not H.project then
     return
   end
-  H.add_package(package, version, project)
+  H.add_package(package, version, H.project)
 end)
 
 return M

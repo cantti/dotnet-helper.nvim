@@ -1,5 +1,4 @@
 local utils = require("dotnet-helper.utils")
-local fs = require("dotnet-helper.fs")
 local a = require("dotnet-helper.async")
 
 local M = {}
