@@ -1,4 +1,5 @@
 local utils = require("dotnet-helper.utils")
+local fs = require("dotnet-helper.fs")
 
 local H = {}
 
@@ -12,9 +13,21 @@ function H.add_autocommands()
     group = vim.api.nvim_create_augroup("dotnet-helper", { clear = true }),
     pattern = "*.cs",
     callback = function()
+      -- capture current buffer, or Snacks.picker gives strange results
+      local buf = vim.api.nvim_get_current_buf()
+
       vim.schedule(function()
-        if utils.cur_buff_empty() then
-          require("dotnet-helper.templates").insert_class({ block_ns = M.opts.autocommands.use_block_ns })
+        if not utils.buff_empty(buf) then
+          return
+        end
+        local fname = fs.get_file_name(vim.api.nvim_buf_get_name(buf))
+        if fname:match("^I%u") then
+          require("dotnet-helper.templates").insert_interface({
+            block_ns = M.opts.autocommands.use_block_ns,
+            buf = buf,
+          })
+        else
+          require("dotnet-helper.templates").insert_class({ block_ns = M.opts.autocommands.use_block_ns, buf = buf })
         end
       end)
     end,
@@ -173,6 +186,10 @@ end
 
 function M.templates_class()
   require("dotnet-helper.templates").class()
+end
+
+function M.templates_interface()
+  require("dotnet-helper.templates").interface()
 end
 
 function M.templates_api_controller()

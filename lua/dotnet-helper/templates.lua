@@ -45,8 +45,8 @@ local function get_namespace()
   return utils.get_namespace_for_file(fs.current_file_path())
 end
 
-local function insert(lines)
-  local buf = vim.api.nvim_get_current_buf()
+local function insert(lines, buf)
+  buf = buf or vim.api.nvim_get_current_buf()
   local row = vim.api.nvim_win_get_cursor(0)[1]
 
   local start, stop = row, row
@@ -91,6 +91,7 @@ end
 ---@class InsertClassOpts
 ---@field name? string
 ---@field block_ns? boolean
+---@field buf? number
 
 ---@param opts InsertClassOpts Options for generating the class code.
 function M.insert_class(opts)
@@ -103,7 +104,7 @@ function M.insert_class(opts)
       "    $0",
       "  }",
       "}",
-    })
+    }, opts.buf)
   else
     insert({
       "namespace " .. get_namespace() .. ";",
@@ -112,7 +113,7 @@ function M.insert_class(opts)
       "{",
       "  $0",
       "}",
-    })
+    }, opts.buf)
   end
 end
 
@@ -121,6 +122,37 @@ function M.class()
     question("Enter class name", get_class_name(), "name"),
     question("Use block namespace?", "n", "block_ns", true),
   }, M.insert_class)
+end
+
+---@param opts InsertClassOpts Options for generating the class code.
+function M.insert_interface(opts)
+  if opts.block_ns then
+    insert({
+      "namespace " .. get_namespace(),
+      "{",
+      "  public interface " .. (opts.name or get_class_name()),
+      "  {",
+      "    $0",
+      "  }",
+      "}",
+    }, opts.buf)
+  else
+    insert({
+      "namespace " .. get_namespace() .. ";",
+      "",
+      "public interface " .. (opts.name or get_class_name()),
+      "{",
+      "  $0",
+      "}",
+    }, opts.buf)
+  end
+end
+
+function M.interface()
+  ask({
+    question("Enter interface name", get_class_name(), "name"),
+    question("Use block namespace?", "n", "block_ns", true),
+  }, M.insert_interface)
 end
 
 function M.api_controller()

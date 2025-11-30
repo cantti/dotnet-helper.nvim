@@ -131,9 +131,9 @@ function M.replace_lines(no, lines)
   vim.api.nvim_buf_set_lines(no, 0, -1, false, lines)
 end
 
-function M.cur_buff_empty()
-  local bufnr = vim.api.nvim_get_current_buf()
-  return (vim.api.nvim_buf_line_count(bufnr) <= 1 and #vim.api.nvim_buf_get_lines(bufnr, 0, 1, false)[1] == 0)
+function M.buff_empty(buf)
+  buf = buf or vim.api.nvim_get_current_buf()
+  return (vim.api.nvim_buf_line_count(buf) <= 1 and #vim.api.nvim_buf_get_lines(buf, 0, 1, false)[1] == 0)
 end
 
 ---@param s string?

@@ -9,6 +9,12 @@ local options = {
     end,
   },
   {
+    label = "Interface",
+    cmd = function()
+      templates.interface()
+    end,
+  },
+  {
     label = "Controller",
     cmd = function()
       templates.api_controller()
