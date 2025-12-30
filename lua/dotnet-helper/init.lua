@@ -58,9 +58,9 @@ local cs_subcommands = {
   ns = {
     impl = function(args)
       if vim.tbl_contains(args, "--dir") then
-        M.fix_ns_buf()
-      else
         M.fix_ns_dir()
+      else
+        M.fix_ns_buf()
       end
     end,
     complete = function(subcmd_arg_lead)
