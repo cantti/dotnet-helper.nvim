@@ -1,5 +1,5 @@
 local fs = require("dotnet-helper.fs")
-local utils = require("dotnet-helper.utils")
+local ns = require("dotnet-helper.ns")
 
 local M = {}
 
@@ -42,7 +42,7 @@ local function get_class_name()
 end
 
 local function get_namespace()
-  return utils.get_namespace_for_file(fs.current_file_path())
+  return ns.compute_namespace(fs.current_file_path())
 end
 
 local function insert(lines, buf)

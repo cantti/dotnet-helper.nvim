@@ -55,26 +55,6 @@ local cs_subcommands = {
         :totable()
     end,
   },
-  ns = {
-    impl = function(args)
-      if vim.tbl_contains(args, "--dir") then
-        M.fix_ns_dir()
-      else
-        M.fix_ns_buf()
-      end
-    end,
-    complete = function(subcmd_arg_lead)
-      local args = {
-        "--dir",
-      }
-      return vim
-        .iter(args)
-        :filter(function(install_arg)
-          return install_arg:find(subcmd_arg_lead) ~= nil
-        end)
-        :totable()
-    end,
-  },
   nuget = {
     impl = function(args)
       M.nuget_search()
@@ -88,6 +68,11 @@ local cs_subcommands = {
   migrations = {
     impl = function(args)
       M.migrations()
+    end,
+  },
+  ns = {
+    impl = function(args)
+      M.adjust_ns()
     end,
   },
 }
@@ -200,16 +185,12 @@ function M.templates_method()
   require("dotnet-helper.templates").method()
 end
 
-function M.fix_ns_buf()
-  require("dotnet-helper.fix_ns").fix_ns_buf()
-end
-
-function M.fix_ns_dir()
-  require("dotnet-helper.fix_ns").fix_ns_dir()
-end
-
 function M.migrations()
   require("dotnet-helper.ef").migrations()
+end
+
+function M.adjust_ns()
+  require("dotnet-helper.ns").adjust_ns()
 end
 
 return M
