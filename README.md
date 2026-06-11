@@ -1,127 +1,61 @@
 # dotnet-helper.nvim
 
-dotnet-helper.nvim provides a collection of lightweight commands and utilities for .NET development in Neovim.
-It’s designed to complement the standard LSP workflow — adding only the essential features missing from a typical Neovim + LSP configuration.
+dotnet-helper.nvim is a small helper plugin for .NET work in Neovim.
+It gives you commands for user-secrets, NuGet search, and EF migrations, without changing your usual LSP workflow.
 
-## Installation:
+## Installation
+
+Options:
+
+```lua
+local opts = {
+  autocommands = {
+    enabled = true,
+    use_block_ns = false,
+  },
+  usercommands = {
+    enabled = true,
+    use_block_ns = false,
+  },
+}
+```
 
 Using lazy:
 
 ```lua
 {
   "cantti/dotnet-helper.nvim",
-  -- default config
-  opts = {
-    -- create autocommands to insert c# class when enterin an empty C# file
-    autocommands = {
-      enabled = true,
-      -- use block {} namespace for new files
-      use_block_ns = false,
-    },
-
-    -- create :Dotnet ... user commands
-    -- if not enabled lua api can be used
-    usercommands = {
-      enabled = true,
-      -- use block {} namespace for templates
-      use_block_ns = false,
-    },
-  },
+  opts = opts,
 },
 
 ```
 
-## New C# file
-
-The plugin can insert C# class when entering an empty C# file.
-
-## Commands
-
-This plugin offers a collection of helper functions implemented with Neovim’s Lua API.
-Many of them are also accessible via user commands under the `:Dotnet` namespace.
-
-### Templates (snippets)
+Using vim.pack:
 
 ```lua
--- choose template from picker
-require("dotnet-helper").templates()
+vim.pack.add({ "https://github.com/cantti/dotnet-helper.nvim" })
 
--- individual templates
-require("dotnet-helper").templates_class()
-require("dotnet-helper").templates_api_controller()
-require("dotnet-helper").templates_method()
+require("dotnet-helper").setup(opts)
 ```
+
+## Auto template for new C# files
+
+When `autocommands.enabled = true`, the plugin automatically inserts a C# class or interface when you open an empty `.cs` file.
+
+## User commands
+
+When `usercommands.enabled = true`, these commands are available:
 
 ```sh
-:Dotnet templates
+# EF Core migrations actions (add/remove/list)
+:DotnetMigrations
+
+# open user-secrets actions
+:DotnetSecrets
+
+# search and install NuGet packages
+:DotnetNuget
 ```
-
-### Fix namespace for buffer
-
-```lua
-require("dotnet-helper").fix_ns_buf()
-```
-
-```sh
-:Dotnet ns
-```
-
-### Fix namespace for directory
-
-```lua
-require("dotnet-helper").fix_ns_dir()
-```
-
-```sh
-:Dotnet ns --dir
-```
-
-### Edit Secrets
-
-```lua
-require("dotnet-helper").secrets_edit()
-```
-
-```sh
-:Dotnet secrets
-```
-
-### List Secrets
-
-```lua
-require("dotnet-helper").secrets_list()
-```
-
-```sh
-:Dotnet secrets --list
-```
-
-### Search and install nuget package
-
-```lua
-require("dotnet-helper").nuget_search()
-```
-
-```sh
-:Dotnet nuget
-```
-
-### EF Core migrations actions
-
-Supported actions: add, remove list.
-
-```lua
-require("dotnet-helper").migrations()
-```
-
-```sh
-:Dotnet migrations
-```
-
-## Plans
-
-- Add `dotnet new` support for common projects
-- Add basic `dotnet sln` support
 
 ## Alternatives and similar plugins
 

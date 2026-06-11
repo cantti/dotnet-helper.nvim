@@ -22,101 +22,37 @@ function H.add_autocommands()
         end
         local fname = fs.get_file_name(vim.api.nvim_buf_get_name(buf))
         if fname:match("^I%u") then
-          require("dotnet-helper.templates").insert_interface({
+          require("dotnet-helper.templates").interface({
             block_ns = M.opts.autocommands.use_block_ns,
             buf = buf,
           })
         else
-          require("dotnet-helper.templates").insert_class({ block_ns = M.opts.autocommands.use_block_ns, buf = buf })
+          require("dotnet-helper.templates").class({ block_ns = M.opts.autocommands.use_block_ns, buf = buf })
         end
       end)
     end,
   })
 end
 
-local cs_subcommands = {
-  secrets = {
-    impl = function(args)
-      if vim.tbl_contains(args, "--list") then
-        M.secrets_list()
-      else
-        M.secrets_edit()
-      end
-    end,
-    complete = function(subcmd_arg_lead)
-      local args = {
-        "--list",
-      }
-      return vim
-        .iter(args)
-        :filter(function(install_arg)
-          return install_arg:find(subcmd_arg_lead) ~= nil
-        end)
-        :totable()
-    end,
-  },
-  nuget = {
-    impl = function(args)
-      M.nuget_search()
-    end,
-  },
-  templates = {
-    impl = function(args)
-      M.templates()
-    end,
-  },
-  migrations = {
-    impl = function(args)
-      M.migrations()
-    end,
-  },
-  ns = {
-    impl = function(args)
-      M.adjust_ns()
-    end,
-  },
-}
-
----@param opts table
-local function cs_command(opts)
-  local fargs = opts.fargs
-  local subcommand_key = fargs[1]
-  -- Get the subcommand's arguments, if any
-  local args = #fargs > 1 and vim.list_slice(fargs, 2, #fargs) or {}
-  local subcommand = cs_subcommands[subcommand_key]
-  if not subcommand then
-    vim.notify("Dotnet: Unknown command: " .. subcommand_key, vim.log.levels.ERROR)
-    return
-  end
-  -- Invoke the subcommand
-  subcommand.impl(args, opts)
-end
-
--- inspired by https://github.com/lumen-oss/nvim-best-practices
 function H.add_usercommands()
-  vim.api.nvim_create_user_command("Dotnet", cs_command, {
-    nargs = "+",
-    desc = "My awesome command with subcommand completions",
-    complete = function(arg_lead, cmdline, _)
-      -- Get the subcommand.
-      local subcmd_key, subcmd_arg_lead = cmdline:match("^['<,'>]*Dotnet[!]*%s(%S+)%s(.*)$")
-      if subcmd_key and subcmd_arg_lead and cs_subcommands[subcmd_key] and cs_subcommands[subcmd_key].complete then
-        -- The subcommand has completions. Return them.
-        return cs_subcommands[subcmd_key].complete(subcmd_arg_lead)
-      end
-      -- Check if cmdline is a subcommand
-      if cmdline:match("^['<,'>]*Dotnet[!]*%s+%w*$") then
-        -- Filter subcommands that match
-        local subcommand_keys = vim.tbl_keys(cs_subcommands)
-        return vim
-          .iter(subcommand_keys)
-          :filter(function(key)
-            return key:find(arg_lead) ~= nil
-          end)
-          :totable()
-      end
-    end,
-    bang = false,
+  vim.api.nvim_create_user_command("DotnetSecrets", M.secrets, {
+    nargs = 0,
+    desc = "Edit user secrets file",
+  })
+
+  vim.api.nvim_create_user_command("DotnetNuget", M.nuget_search, {
+    nargs = 0,
+    desc = "Search NuGet packages",
+  })
+
+  vim.api.nvim_create_user_command("DotnetMigrations", M.migrations, {
+    nargs = 0,
+    desc = "Run EF migrations actions",
+  })
+
+  vim.api.nvim_create_user_command("DotnetAdjustNs", M.adjust_ns, {
+    nargs = 0,
+    desc = "Adjust namespace for current file",
   })
 end
 
@@ -153,28 +89,12 @@ function M.setup(opts)
   end
 end
 
-function M.secrets_list()
-  require("dotnet-helper.secrets").list()
-end
-
-function M.secrets_edit()
-  require("dotnet-helper.secrets").edit()
+function M.secrets()
+  require("dotnet-helper.secrets").secrets()
 end
 
 function M.nuget_search()
   require("dotnet-helper.nuget").search()
-end
-
-function M.templates()
-  require("dotnet-helper.template_chooser").show()
-end
-
-function M.templates_class()
-  require("dotnet-helper.templates").class()
-end
-
-function M.templates_interface()
-  require("dotnet-helper.templates").interface()
 end
 
 function M.templates_api_controller()

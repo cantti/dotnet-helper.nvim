@@ -35,25 +35,6 @@ H.prompt_secret = function(project, secrets)
 end
 
 ---@param project string
----@return table? result
----@return string? err
-H.list_secrets = function(project)
-  local output = a.system({ "dotnet", "user-secrets", "list", "-p", project })
-  if output.code ~= 0 then
-    local err = (output and output.stderr ~= "" and output.stderr) or "dotnet secret list failed"
-    return nil, err
-  end
-  local secrets = {}
-  if string.match(output.stdout, "=") then
-    for secret in string.gmatch(output.stdout, "(.-)\n") do
-      local key, value = string.match(secret, "(.-) = (.+)")
-      table.insert(secrets, { key = key, value = value })
-    end
-  end
-  return secrets
-end
-
----@param project string
 ---@return string|nil
 ---@return string? err
 H.get_secrets_path = function(project)
@@ -97,21 +78,16 @@ H.open_secrets_json = function(project)
   end
 end
 
-M.list = a.async(function()
-  H.project = utils.prompt_project("Choose project:", H.project)
-  if not H.project then
-    return
-  end
-  local secrets = assert(H.list_secrets(H.project))
-  H.prompt_secret(H.project, secrets)
-end)
-
-M.edit = a.async(function()
+H.edit = a.async(function()
   H.project = utils.prompt_project("Choose project:", H.project)
   if not H.project then
     return
   end
   H.open_secrets_json(H.project)
+end)
+
+M.secrets = a.async(function()
+  H.edit()
 end)
 
 return M
