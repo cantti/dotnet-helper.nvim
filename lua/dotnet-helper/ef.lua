@@ -10,10 +10,10 @@ H.startup = nil
 --- @param output table
 H.notify = function(output)
   if output.code == 0 then
-    vim.notify(output.stdout, vim.log.levels.INFO)
+    utils.notify(output.stdout)
   else
     local msg = (output.stderr ~= "" and output.stderr) or output.stdout
-    vim.notify(msg, vim.log.levels.ERROR)
+    utils.notify(msg, vim.log.levels.ERROR)
   end
 end
 
@@ -21,7 +21,8 @@ H.migration_add = function()
   H.project = utils.prompt_project("Choose project:", H.project)
   H.startup = utils.prompt_project("Choose startup project:", H.startup)
   local name = a.input({ prompt = "Migration name: " })
-  local args = { "dotnet", "ef", "migrations", "add", "--prefix-output", "-p", H.project, "-s", H.startup, name }
+  local args = { "dotnet", "ef", "migrations", "add", "-p", H.project, "-s", H.startup, name }
+  utils.notify("Adding migration...")
   local output = a.system(args)
   H.notify(output)
 end
@@ -29,8 +30,8 @@ end
 H.migration_remove = function()
   H.project = utils.prompt_project("Choose project:", H.project)
   H.startup = utils.prompt_project("Choose startup project:", H.startup)
-  local args =
-    { "dotnet", "ef", "migrations", "remove", "--force", "--prefix-output", "-p", H.project, "-s", H.startup }
+  local args = { "dotnet", "ef", "migrations", "remove", "--force", "-p", H.project, "-s", H.startup }
+  utils.notify("Removing migration...")
   local output = a.system(args)
   H.notify(output)
 end
@@ -38,13 +39,23 @@ end
 H.migration_list = function()
   H.project = utils.prompt_project("Choose project:", H.project)
   H.startup = utils.prompt_project("Choose startup project:", H.startup)
-  local args = { "dotnet", "ef", "migrations", "list", "--prefix-output", "-p", H.project, "-s", H.startup }
+  local args = { "dotnet", "ef", "migrations", "list", "-p", H.project, "-s", H.startup }
+  utils.notify("Listing migrations...")
+  local output = a.system(args)
+  H.notify(output)
+end
+
+H.has_pending_changes = function()
+  H.project = utils.prompt_project("Choose project:", H.project)
+  H.startup = utils.prompt_project("Choose startup project:", H.startup)
+  local args = { "dotnet", "ef", "migrations", "has-pending-model-changes", "-p", H.project, "-s", H.startup }
+  utils.notify("Checking for pending model changes...")
   local output = a.system(args)
   H.notify(output)
 end
 
 M.migrations = a.async(function()
-  local action = a.select({ "Add", "Remove", "List" }, {
+  local action = a.select({ "Add", "Remove", "List", "Has Pending Model Changes" }, {
     prompt = "Choose action:",
   })
   if action == "Add" then
@@ -55,6 +66,9 @@ M.migrations = a.async(function()
   end
   if action == "List" then
     H.migration_list()
+  end
+  if action == "Has Pending Model Changes" then
+    H.has_pending_changes()
   end
 end)
 

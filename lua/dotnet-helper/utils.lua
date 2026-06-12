@@ -99,7 +99,7 @@ end
 M.prompt_project = function(prompt, last)
   local projects = M.get_projects(false)
   if #projects == 0 then
-    vim.notify("No projects found in this workspace.", vim.log.levels.WARN)
+    M.notify("No projects found in this workspace.", vim.log.levels.WARN)
   elseif #projects == 1 then
     return projects[1]
   else
@@ -120,6 +120,12 @@ M.prompt_project = function(prompt, last)
       end,
     })
   end
+end
+
+---@param msg string
+---@param level integer?
+M.notify = function(msg, level)
+  vim.notify(msg, level or vim.log.levels.INFO)
 end
 
 return M

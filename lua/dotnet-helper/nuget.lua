@@ -41,10 +41,10 @@ H.add_package = function(package, version, project)
   local output = a.system(args)
   if output.code == 0 then
     vim.cmd("edit " .. project)
-    vim.notify(string.format("Added %s %s to %s", package.id, version, fs.relative_path(project)), vim.log.levels.INFO)
+    utils.notify(string.format("Added %s %s to %s", package.id, version, fs.relative_path(project)))
   else
     local msg = (#output.stderr > 0 and output.stderr) or "Error adding package"
-    vim.notify(msg, vim.log.levels.ERROR)
+    utils.notify(msg, vim.log.levels.ERROR)
   end
 end
 ---
@@ -90,7 +90,7 @@ M.search = a.async(function()
   end
   local packages = H.fetch_packages(input)
   if #packages == 0 then
-    vim.notify("No packages found for that query.", vim.log.levels.INFO)
+    utils.notify("No packages found for that query.")
     return
   end
   local package = H.prompt_package(packages)

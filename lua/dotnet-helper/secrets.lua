@@ -15,7 +15,7 @@ H.project = nil
 ---@param secrets SecretItem[]
 H.prompt_secret = function(project, secrets)
   if not secrets or vim.tbl_isempty(secrets) then
-    vim.notify("No secrets configured for the project", vim.log.levels.WARN)
+    utils.notify("No secrets configured for the project", vim.log.levels.WARN)
     return
   end
   local choice = a.select(secrets, {
