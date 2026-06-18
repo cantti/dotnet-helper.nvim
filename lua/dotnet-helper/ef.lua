@@ -19,8 +19,17 @@ end
 
 H.migration_add = function()
   H.project = utils.prompt_project("Choose project:", H.project)
+  if not H.project then
+    return
+  end
   H.startup = utils.prompt_project("Choose startup project:", H.startup)
+  if not H.startup then
+    return
+  end
   local name = a.input({ prompt = "Migration name: " })
+  if not name then
+    return
+  end
   local args = { "dotnet", "ef", "migrations", "add", "-p", H.project, "-s", H.startup, name }
   utils.notify("Adding migration...")
   local output = a.system(args)
@@ -29,7 +38,13 @@ end
 
 H.migration_remove = function()
   H.project = utils.prompt_project("Choose project:", H.project)
+  if not H.project then
+    return
+  end
   H.startup = utils.prompt_project("Choose startup project:", H.startup)
+  if not H.startup then
+    return
+  end
   local args = { "dotnet", "ef", "migrations", "remove", "--force", "-p", H.project, "-s", H.startup }
   utils.notify("Removing migration...")
   local output = a.system(args)
@@ -38,7 +53,13 @@ end
 
 H.migration_list = function()
   H.project = utils.prompt_project("Choose project:", H.project)
+  if not H.project then
+    return
+  end
   H.startup = utils.prompt_project("Choose startup project:", H.startup)
+  if not H.startup then
+    return
+  end
   local args = { "dotnet", "ef", "migrations", "list", "-p", H.project, "-s", H.startup }
   utils.notify("Listing migrations...")
   local output = a.system(args)
@@ -47,7 +68,13 @@ end
 
 H.has_pending_changes = function()
   H.project = utils.prompt_project("Choose project:", H.project)
+  if not H.project then
+    return
+  end
   H.startup = utils.prompt_project("Choose startup project:", H.startup)
+  if not H.startup then
+    return
+  end
   local args = { "dotnet", "ef", "migrations", "has-pending-model-changes", "-p", H.project, "-s", H.startup }
   utils.notify("Checking for pending model changes...")
   local output = a.system(args)
@@ -56,7 +83,13 @@ end
 
 H.database_update = function()
   H.project = utils.prompt_project("Choose project:", H.project)
+  if not H.project then
+    return
+  end
   H.startup = utils.prompt_project("Choose startup project:", H.startup)
+  if not H.startup then
+    return
+  end
   local args = { "dotnet", "ef", "database", "update", "-p", H.project, "-s", H.startup }
   utils.notify("Updating database...")
   local output = a.system(args)
