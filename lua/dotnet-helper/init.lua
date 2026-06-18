@@ -45,14 +45,9 @@ function H.add_usercommands()
     desc = "Search NuGet packages",
   })
 
-  vim.api.nvim_create_user_command("DotnetMigrations", M.migrations, {
+  vim.api.nvim_create_user_command("DotnetEf", M.ef, {
     nargs = 0,
     desc = "Run EF migrations actions",
-  })
-
-  vim.api.nvim_create_user_command("DotnetAdjustNs", M.adjust_ns, {
-    nargs = 0,
-    desc = "Adjust namespace for current file",
   })
 end
 
@@ -105,8 +100,8 @@ function M.templates_method()
   require("dotnet-helper.templates").method()
 end
 
-function M.migrations()
-  require("dotnet-helper.ef").migrations()
+function M.ef()
+  require("dotnet-helper.ef").ef()
 end
 
 function M.adjust_ns()

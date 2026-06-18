@@ -54,21 +54,39 @@ H.has_pending_changes = function()
   H.notify(output)
 end
 
-M.migrations = a.async(function()
-  local action = a.select({ "Add", "Remove", "List", "Has Pending Model Changes" }, {
+H.database_update = function()
+  H.project = utils.prompt_project("Choose project:", H.project)
+  H.startup = utils.prompt_project("Choose startup project:", H.startup)
+  local args = { "dotnet", "ef", "database", "update", "-p", H.project, "-s", H.startup }
+  utils.notify("Updating database...")
+  local output = a.system(args)
+  H.notify(output)
+end
+
+M.ef = a.async(function()
+  local action = a.select({
+    "Migrations: add",
+    "Migrations: remove",
+    "Migrations: list",
+    "Migrations: has pending model changes",
+    "Database: update",
+  }, {
     prompt = "Choose action:",
   })
-  if action == "Add" then
+  if action == "Migrations: add" then
     H.migration_add()
   end
-  if action == "Remove" then
+  if action == "Migrations: remove" then
     H.migration_remove()
   end
-  if action == "List" then
+  if action == "Migrations: list" then
     H.migration_list()
   end
-  if action == "Has Pending Model Changes" then
+  if action == "Migrations: has pending model changes" then
     H.has_pending_changes()
+  end
+  if action == "Database: update" then
+    H.database_update()
   end
 end)
 
