@@ -31,7 +31,7 @@ H.prompt_project_and_startup = function()
   return true
 end
 
-H.migration_add = function()
+M.migration_add = function()
   if not H.prompt_project_and_startup() then
     return
   end
@@ -173,7 +173,7 @@ end
 
 M.ef = a.async(function()
   local actions = {
-    { label = "Migrations: add", handler = H.migration_add },
+    { label = "Migrations: add", handler = M.migration_add },
     { label = "Migrations: remove", handler = H.migration_remove },
     { label = "Migrations: list", handler = H.migration_list },
     { label = "Migrations: has pending model changes", handler = H.has_pending_changes },

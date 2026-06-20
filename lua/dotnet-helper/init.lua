@@ -49,6 +49,11 @@ function H.add_usercommands()
     nargs = 0,
     desc = "Run EF migrations actions",
   })
+
+  vim.api.nvim_create_user_command("DotnetTest", M.test, {
+    nargs = 0,
+    desc = "Run dotnet test for project",
+  })
 end
 
 ---@class DotnetHelperAutocmdOpts
@@ -102,6 +107,10 @@ end
 
 function M.ef()
   require("dotnet-helper.ef").ef()
+end
+
+function M.test()
+  require("dotnet-helper.test").test()
 end
 
 function M.adjust_ns()

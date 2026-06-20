@@ -9,6 +9,7 @@ function M.get_projects(include_solution)
   local valid_ext = { "csproj" }
   if include_solution then
     table.insert(valid_ext, "sln")
+    table.insert(valid_ext, "slnx")
   end
   return M.get_file_options(fs.cwd(), valid_ext)
 end
@@ -95,9 +96,10 @@ function M.filter_dotnet_output(text, prefix)
   return table.concat(out, "\n")
 end
 
+---@param include_solution boolean?
 ---@return string|nil
-M.prompt_project = function(prompt, last)
-  local projects = M.get_projects(false)
+M.prompt_project = function(prompt, last, include_solution)
+  local projects = M.get_projects(include_solution)
   if #projects == 0 then
     M.notify("No projects found in this workspace.", vim.log.levels.WARN)
   elseif #projects == 1 then

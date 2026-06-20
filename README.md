@@ -47,14 +47,17 @@ When `autocommands.enabled = true`, the plugin automatically inserts a C# class 
 When `usercommands.enabled = true`, these commands are available:
 
 ```sh
-# EF Core migrations actions (add/remove/list)
-:DotnetMigrations
+# EF Core migrations actions
+:DotnetEf
 
 # open user-secrets actions
 :DotnetSecrets
 
 # search and install NuGet packages
 :DotnetNuget
+
+# run tests for a project or solution
+:DotnetTest
 ```
 
 ## Alternatives and similar plugins
@@ -62,3 +65,11 @@ When `usercommands.enabled = true`, these commands are available:
 - https://github.com/GustavEikaas/easy-dotnet.nvim
 - https://github.com/MoaidHathot/dotnet.nvim
 - https://github.com/DestopLine/boilersharp.nvim
+
+## Tests
+
+This repo includes a small Lua test runner for unit tests:
+
+```sh
+lua tests/run.lua
+```
