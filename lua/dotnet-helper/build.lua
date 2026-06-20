@@ -8,21 +8,17 @@ local H = {}
 
 H.target = nil
 
-M.run_project_tests = function(project)
-  local args = { "dotnet", "test", project }
-  return terminal.run(args)
-end
-
-M.test = a.async(function()
+M.build = a.async(function()
   H.target = utils.prompt_project("Choose project/solution:", H.target, true)
   if not H.target then
     return
   end
 
-  utils.notify("Running tests for " .. fs.relative_path(H.target) .. "...")
-  local ok, err = M.run_project_tests(H.target)
+  utils.notify("Building " .. fs.relative_path(H.target) .. "...")
+  local args = { "dotnet", "build", H.target }
+  local ok, err = terminal.run(args)
   if not ok then
-    utils.notify(err or "Failed to run tests", vim.log.levels.ERROR)
+    utils.notify(err or "Failed to start build", vim.log.levels.ERROR)
   end
 end)
 

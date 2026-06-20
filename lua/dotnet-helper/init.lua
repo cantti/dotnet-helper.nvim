@@ -54,6 +54,11 @@ function H.add_usercommands()
     nargs = 0,
     desc = "Run dotnet test for project",
   })
+
+  vim.api.nvim_create_user_command("DotnetBuild", M.build, {
+    nargs = 0,
+    desc = "Run dotnet build for project",
+  })
 end
 
 ---@class DotnetHelperAutocmdOpts
@@ -124,6 +129,10 @@ end
 
 function M.test()
   require("dotnet-helper.test").test()
+end
+
+function M.build()
+  require("dotnet-helper.build").build()
 end
 
 function M.adjust_ns()

@@ -57,7 +57,7 @@ H.open_secrets_json = function(project)
   if not fs.file_exists(secrets_path) then
     local buf = vim.api.nvim_create_buf(true, false)
     vim.api.nvim_buf_set_name(buf, secrets_path)
-    vim.api.nvim_buf_set_option(buf, "filetype", "json")
+    vim.bo[buf].filetype = "json"
     vim.api.nvim_set_current_buf(buf)
     local lines = {
       "{",

@@ -63,6 +63,9 @@ When `usercommands.enabled = true`, these commands are available:
 
 # run tests for a project or solution
 :DotnetTest
+
+# build a project or solution
+:DotnetBuild
 ```
 
 ## Alternatives and similar plugins
