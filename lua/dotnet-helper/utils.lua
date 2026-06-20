@@ -76,7 +76,7 @@ function M.is_dotnet_10()
     error("Failed to parse .NET version from: " .. tostring(result.stdout))
   end
 
-  cached_dotnet_10_value = major > 10
+  cached_dotnet_10_value = major >= 10
 
   return cached_dotnet_10_value
 end
