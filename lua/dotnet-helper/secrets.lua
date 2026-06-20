@@ -7,60 +7,53 @@ local H = {}
 
 H.project = nil
 
----@class SecretItem
----@field key string
----@field value string
-
 ---@param project string
----@param secrets SecretItem[]
-H.prompt_secret = function(project, secrets)
-  if not secrets or vim.tbl_isempty(secrets) then
-    utils.notify("No secrets configured for the project", vim.log.levels.WARN)
-    return
+---@return string|nil
+H.get_user_secrets_id = function(project)
+  for line in io.lines(project) do
+    local id = string.match(line, "<UserSecretsId>([^<>]+)</UserSecretsId>")
+    if id then
+      return id
+    end
   end
-  local choice = a.select(secrets, {
-    prompt = "Choose secret:",
-    format_item = function(item)
-      return string.format("%s = %s", item.key, item.value)
-    end,
-  })
-  if not choice then
-    return
-  end
-  H.open_secrets_json(project)
-  -- jump after the file is opened/current
-  -- very-nomagic search for the exact "key"
-  local pattern = [[\V"]] .. choice.key:gsub("\\", "\\\\"):gsub('"', '\\"') .. [["]]
-  vim.fn.search(pattern)
+  return nil
 end
 
 ---@param project string
 ---@return string|nil
 ---@return string? err
 H.get_secrets_path = function(project)
-  local output = a.system({
-    "dotnet",
-    "user-secrets",
-    "list",
-    "--verbose",
-    "-p",
-    project,
-  })
-  if output.code ~= 0 then
-    local err = (output and output.stderr ~= "" and output.stderr) or "dotnet secret list failed"
-    return nil, err
+  local user_secrets_id = H.get_user_secrets_id(project)
+  if not user_secrets_id then
+    return nil, "no UserSecretsId found"
   end
-  local path = string.match(output.stdout, "Secrets file path (.-)%.\n")
-  if not path then
-    return nil, "no secrets path found"
+
+  local root
+  if fs.is_windows then
+    root = fs.join_paths({ vim.env.APPDATA, "Microsoft", "UserSecrets" })
+  else
+    root = fs.join_paths({ vim.env.HOME, ".microsoft", "usersecrets" })
   end
+
+  local path = fs.join_paths({ root, user_secrets_id, "secrets.json" })
   return path, nil
 end
 
 ---@param project string
 H.open_secrets_json = function(project)
-  a.system({ "dotnet", "user-secrets", "init", "-p", project })
-  local secrets_path = assert(H.get_secrets_path(project), "secrets file not found")
+  local init_output = a.system({ "dotnet", "user-secrets", "init", "-p", project })
+  if init_output.code ~= 0 then
+    local err = (init_output.stderr ~= "" and init_output.stderr) or "dotnet user-secrets init failed"
+    utils.notify(err, vim.log.levels.WARN)
+    return
+  end
+
+  local secrets_path, err = H.get_secrets_path(project)
+  if not secrets_path then
+    utils.notify(err or "secrets file not found", vim.log.levels.WARN)
+    return
+  end
+
   if not fs.file_exists(secrets_path) then
     local buf = vim.api.nvim_create_buf(true, false)
     vim.api.nvim_buf_set_name(buf, secrets_path)
@@ -74,7 +67,7 @@ H.open_secrets_json = function(project)
     vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
   else
     -- if file exists, just open
-    vim.cmd("edit " .. secrets_path)
+    vim.cmd("edit " .. vim.fn.fnameescape(secrets_path))
   end
 end
 
