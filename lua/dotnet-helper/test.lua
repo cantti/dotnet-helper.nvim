@@ -1,33 +1,22 @@
 local utils = require("dotnet-helper.utils")
 local fs = require("dotnet-helper.fs")
 local a = require("dotnet-helper.async")
+local terminal = require("dotnet-helper.terminal")
 
 local M = {}
 local H = {}
 
 H.project = nil
 
----@param target string
----@return string[]
-M.build_test_args = function(target)
-  return { "dotnet", "test", target }
-end
-
 ---@param project string
 ---@return boolean|nil
 ---@return string? err
 M.run_project_tests = function(project)
-  local args = M.build_test_args(project)
-  local output = a.system(args)
-
-  if output.code == 0 then
-    utils.notify(output.stdout)
-    return true, nil
-  end
-
-  local msg = (output.stderr ~= "" and output.stderr) or output.stdout
-  utils.notify(msg, vim.log.levels.ERROR)
-  return nil, msg
+  local args = { "dotnet", "test", project }
+  return terminal.run(args, {
+    success_message = "Tests passed",
+    error_message = "Tests failed",
+  })
 end
 
 M.test = a.async(function()
@@ -37,7 +26,10 @@ M.test = a.async(function()
   end
 
   utils.notify("Running tests for " .. fs.relative_path(H.project) .. "...")
-  M.run_project_tests(H.project)
+  local ok, err = M.run_project_tests(H.project)
+  if not ok then
+    utils.notify(err or "Failed to run tests", vim.log.levels.ERROR)
+  end
 end)
 
 return M

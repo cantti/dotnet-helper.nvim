@@ -64,9 +64,15 @@ end
 ---@field enabled boolean
 ---@field use_block_ns boolean
 
+---@class DotnetHelperTerminalOpts
+---@field height integer
+---@field position string
+---@field enter_insert boolean
+
 ---@class DotnetHelperOpts
 ---@field autocommands DotnetHelperAutocmdOpts
 ---@field usercommands DotnetHelperUsercmdOpts
+---@field terminal DotnetHelperTerminalOpts
 local defaults = {
   autocommands = {
     enabled = true,
@@ -76,11 +82,18 @@ local defaults = {
     enabled = true,
     use_block_ns = false,
   },
+  terminal = {
+    height = 14,
+    position = "botright",
+    enter_insert = false,
+  },
 }
+
+M.opts = defaults
 
 function M.setup(opts)
   opts = opts or {}
-  M.opts = vim.tbl_deep_extend("force", defaults, opts)
+  M.opts = vim.tbl_deep_extend("force", M.opts, opts)
   if M.opts.autocommands.enabled then
     H.add_autocommands()
   end

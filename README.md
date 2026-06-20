@@ -17,6 +17,11 @@ local opts = {
     enabled = true,
     use_block_ns = false,
   },
+  terminal = {
+    height = 14,
+    position = "botright",
+    enter_insert = false,
+  },
 }
 ```
 

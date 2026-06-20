@@ -1,5 +1,6 @@
 local utils = require("dotnet-helper.utils")
 local a = require("dotnet-helper.async")
+local terminal = require("dotnet-helper.terminal")
 
 local M = {}
 local H = {}
@@ -7,13 +8,19 @@ local H = {}
 H.project = nil
 H.startup = nil
 
---- @param output table
-H.notify = function(output)
-  if output.code == 0 then
-    utils.notify(output.stdout)
-  else
-    local msg = (output.stderr ~= "" and output.stderr) or output.stdout
-    utils.notify(msg, vim.log.levels.ERROR)
+---@param args string[]
+---@param start_msg string
+---@param success_msg string
+---@param error_msg string
+H.run_action = function(args, start_msg, success_msg, error_msg)
+  utils.notify(start_msg)
+  local ok, err = terminal.run(args, {
+    success_message = success_msg,
+    error_message = error_msg,
+  })
+
+  if not ok then
+    utils.notify(err or "Failed to start command", vim.log.levels.ERROR)
   end
 end
 
@@ -40,9 +47,7 @@ M.migration_add = function()
     return
   end
   local args = { "dotnet", "ef", "migrations", "add", "-p", H.project, "-s", H.startup, name }
-  utils.notify("Adding migration...")
-  local output = a.system(args)
-  H.notify(output)
+  H.run_action(args, "Adding migration...", "Migration added", "Migration add failed")
 end
 
 H.migration_remove = function()
@@ -50,9 +55,7 @@ H.migration_remove = function()
     return
   end
   local args = { "dotnet", "ef", "migrations", "remove", "--force", "-p", H.project, "-s", H.startup }
-  utils.notify("Removing migration...")
-  local output = a.system(args)
-  H.notify(output)
+  H.run_action(args, "Removing migration...", "Migration removed", "Migration remove failed")
 end
 
 H.migration_list = function()
@@ -60,9 +63,7 @@ H.migration_list = function()
     return
   end
   local args = { "dotnet", "ef", "migrations", "list", "-p", H.project, "-s", H.startup }
-  utils.notify("Listing migrations...")
-  local output = a.system(args)
-  H.notify(output)
+  H.run_action(args, "Listing migrations...", "Migration list completed", "Migration list failed")
 end
 
 H.has_pending_changes = function()
@@ -70,9 +71,7 @@ H.has_pending_changes = function()
     return
   end
   local args = { "dotnet", "ef", "migrations", "has-pending-model-changes", "-p", H.project, "-s", H.startup }
-  utils.notify("Checking for pending model changes...")
-  local output = a.system(args)
-  H.notify(output)
+  H.run_action(args, "Checking for pending model changes...", "Check completed", "Check failed")
 end
 
 H.database_update = function()
@@ -80,9 +79,7 @@ H.database_update = function()
     return
   end
   local args = { "dotnet", "ef", "database", "update", "-p", H.project, "-s", H.startup }
-  utils.notify("Updating database...")
-  local output = a.system(args)
-  H.notify(output)
+  H.run_action(args, "Updating database...", "Database updated", "Database update failed")
 end
 
 H.database_drop = function()
@@ -102,9 +99,7 @@ H.database_drop = function()
     table.insert(args, "--force")
   end
 
-  utils.notify("Dropping database...")
-  local output = a.system(args)
-  H.notify(output)
+  H.run_action(args, "Dropping database...", "Database dropped", "Database drop failed")
 end
 
 H.dbcontext_info = function()
@@ -113,9 +108,7 @@ H.dbcontext_info = function()
   end
 
   local args = { "dotnet", "ef", "dbcontext", "info", "-p", H.project, "-s", H.startup }
-  utils.notify("Getting DbContext info...")
-  local output = a.system(args)
-  H.notify(output)
+  H.run_action(args, "Getting DbContext info...", "DbContext info completed", "DbContext info failed")
 end
 
 H.dbcontext_list = function()
@@ -124,9 +117,7 @@ H.dbcontext_list = function()
   end
 
   local args = { "dotnet", "ef", "dbcontext", "list", "-p", H.project, "-s", H.startup }
-  utils.notify("Listing DbContexts...")
-  local output = a.system(args)
-  H.notify(output)
+  H.run_action(args, "Listing DbContexts...", "DbContext list completed", "DbContext list failed")
 end
 
 H.migration_script = function()
@@ -166,9 +157,7 @@ H.migration_script = function()
     table.insert(args, "--idempotent")
   end
 
-  utils.notify("Generating migration script...")
-  local output = a.system(args)
-  H.notify(output)
+  H.run_action(args, "Generating migration script...", "Migration script generated", "Migration script failed")
 end
 
 M.ef = a.async(function()
