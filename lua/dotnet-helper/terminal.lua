@@ -40,7 +40,8 @@ M.run = function(args)
   local win = ensure_window()
 
   local buf = vim.api.nvim_create_buf(true, false)
-  vim.bo[buf].bufhidden = "hide"
+  vim.bo[buf].bufhidden = "wipe"
+  vim.bo[buf].buflisted = false
   pcall(vim.api.nvim_buf_set_var, buf, "dotnet_helper_terminal", true)
   vim.api.nvim_win_set_buf(win, buf)
 
