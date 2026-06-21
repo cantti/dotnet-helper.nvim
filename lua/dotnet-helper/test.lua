@@ -1,7 +1,7 @@
 local utils = require("dotnet-helper.utils")
 local fs = require("dotnet-helper.fs")
 local a = require("dotnet-helper.async")
-local terminal = require("dotnet-helper.terminal")
+local runner = require("dotnet-helper.runner")
 
 local M = {}
 local H = {}
@@ -10,7 +10,7 @@ H.target = nil
 
 M.run_project_tests = function(project)
   local args = { "dotnet", "test", project }
-  return terminal.run(args, {
+  return runner.run(args, {
     notify_on_error = false,
   })
 end

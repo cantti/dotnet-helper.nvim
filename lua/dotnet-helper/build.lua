@@ -1,7 +1,7 @@
 local utils = require("dotnet-helper.utils")
 local fs = require("dotnet-helper.fs")
 local a = require("dotnet-helper.async")
-local terminal = require("dotnet-helper.terminal")
+local runner = require("dotnet-helper.runner")
 
 local M = {}
 local H = {}
@@ -16,7 +16,7 @@ M.build = a.async(function()
 
   utils.notify("Building " .. fs.relative_path(H.target) .. "...")
   local args = { "dotnet", "build", H.target }
-  local ok, err = terminal.run(args)
+  local ok, err = runner.run(args)
   if not ok then
     utils.notify(err or "Failed to start build", vim.log.levels.ERROR)
   end

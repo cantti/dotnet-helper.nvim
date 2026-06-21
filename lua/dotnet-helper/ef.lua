@@ -1,6 +1,6 @@
 local utils = require("dotnet-helper.utils")
 local a = require("dotnet-helper.async")
-local terminal = require("dotnet-helper.terminal")
+local runner = require("dotnet-helper.runner")
 
 local M = {}
 local H = {}
@@ -14,7 +14,7 @@ H.startup = nil
 ---@param error_msg string
 H.run_action = function(args, start_msg, success_msg, error_msg)
   utils.notify(start_msg)
-  local ok, err = terminal.run(args, {
+  local ok, err = runner.run(args, {
     success_message = success_msg,
     error_message = error_msg,
   })
