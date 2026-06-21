@@ -1,9 +1,28 @@
 local fs = require("dotnet-helper.fs")
 local a = require("dotnet-helper.async")
 
+local has_devicons, devicons = pcall(require, "nvim-web-devicons")
+
 local M = {}
 
 local exclude_dirs = { "obj", "bin", ".git" }
+
+---@param path string
+---@return string
+local function project_icon(path)
+  if not has_devicons then
+    return ""
+  end
+
+  local name = fs.get_file_name(path)
+  local ext = fs.get_ext(path)
+  local icon = devicons.get_icon(name, ext, { default = false })
+  if not icon then
+    return ""
+  end
+
+  return icon .. " "
+end
 
 function M.get_projects(include_solution)
   local valid_ext = { "csproj" }
@@ -115,10 +134,11 @@ M.prompt_project = function(prompt, last, include_solution)
       prompt = prompt,
       format_item = function(item)
         local rel_path = fs.relative_path(item)
+        local icon = project_icon(item)
         if last == item then
-          return rel_path .. " (Last selected)"
+          return icon .. rel_path .. " (Last selected)"
         end
-        return rel_path
+        return icon .. rel_path
       end,
     })
   end
