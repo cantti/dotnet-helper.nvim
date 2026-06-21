@@ -1,5 +1,6 @@
 local utils = require("dotnet-helper.utils")
 local plugin = require("dotnet-helper")
+local a = require("dotnet-helper.async")
 
 local M = {}
 
@@ -36,40 +37,66 @@ local function ensure_window()
   return win
 end
 
----@param args string[]
----@return boolean|nil
----@return string? err
-M.run = function(args)
-  local win = ensure_window()
-
-  local buf = vim.api.nvim_create_buf(true, false)
+---@param win integer
+---@return integer
+local function create_output_buffer(win)
+  local buf = vim.api.nvim_create_buf(false, true)
+  vim.bo[buf].buftype = "nofile"
   vim.bo[buf].bufhidden = "wipe"
   vim.bo[buf].buflisted = false
+  vim.bo[buf].swapfile = false
+  vim.bo[buf].filetype = "log"
   pcall(vim.api.nvim_buf_set_var, buf, "dotnet_helper_terminal", true)
   vim.api.nvim_win_set_buf(win, buf)
+  return buf
+end
 
-  local job_id = vim.fn.jobstart(args, {
-    term = true,
-    on_exit = function(_, code)
-      vim.schedule(function()
-        if code == 0 then
-          utils.notify("Command completed")
-        else
-          utils.notify("Command failed", vim.log.levels.ERROR)
-        end
-      end)
-    end,
-  })
-
-  if job_id <= 0 then
-    return nil, "Failed to start terminal command"
+---@param buf integer
+---@param text string
+local function set_output(buf, text)
+  local normalized = text:gsub("\r\n", "\n")
+  local lines = vim.split(normalized, "\n", { plain = true, trimempty = false })
+  if vim.tbl_isempty(lines) then
+    lines = { "" }
   end
 
-  local opts = get_opts()
-  if opts.enter_insert == true then
-    vim.cmd("startinsert")
+  vim.bo[buf].modifiable = true
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+  vim.bo[buf].modifiable = false
+end
+
+---@param args string[]
+---@param opts table?
+---@return boolean|nil
+---@return string? err
+M.run = function(args, opts)
+  opts = opts or {}
+
+  local win = ensure_window()
+  local buf = create_output_buffer(win)
+
+  local output = a.system(args)
+
+  local full_output = output.stdout or ""
+  if output.stderr and output.stderr ~= "" then
+    if full_output ~= "" then
+      full_output = full_output .. "\n"
+    end
+    full_output = full_output .. output.stderr
   end
-  return true, nil
+
+  set_output(buf, full_output)
+
+  if output.code == 0 then
+    utils.notify(opts.success_message or "Command completed")
+    return true, nil
+  end
+
+  local msg = (output.stderr and output.stderr ~= "" and output.stderr) or output.stdout or "Command failed"
+  if opts.notify_on_error ~= false then
+    utils.notify(opts.error_message or msg, vim.log.levels.ERROR)
+  end
+  return nil, msg
 end
 
 return M

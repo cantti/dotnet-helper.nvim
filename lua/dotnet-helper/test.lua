@@ -10,7 +10,9 @@ H.target = nil
 
 M.run_project_tests = function(project)
   local args = { "dotnet", "test", project }
-  return terminal.run(args)
+  return terminal.run(args, {
+    notify_on_error = false,
+  })
 end
 
 M.test = a.async(function()
@@ -20,10 +22,7 @@ M.test = a.async(function()
   end
 
   utils.notify("Running tests for " .. fs.relative_path(H.target) .. "...")
-  local ok, err = M.run_project_tests(H.target)
-  if not ok then
-    utils.notify(err or "Failed to run tests", vim.log.levels.ERROR)
-  end
+  M.run_project_tests(H.target)
 end)
 
 return M
