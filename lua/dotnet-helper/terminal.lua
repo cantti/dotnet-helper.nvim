@@ -3,7 +3,9 @@ local plugin = require("dotnet-helper")
 
 local M = {}
 
-local opts = (plugin.opts and plugin.opts.terminal) or {}
+local function get_opts()
+  return (plugin.opts and plugin.opts.terminal) or {}
+end
 
 ---@return integer|nil
 local function get_shared_window()
@@ -26,10 +28,11 @@ local function ensure_window()
     return win
   end
 
-  local position = opts.position or "botright"
+  local opts = get_opts()
+  local position = opts.position
   vim.cmd(position .. " split")
   win = vim.api.nvim_get_current_win()
-  vim.api.nvim_win_set_height(win, opts.height or 14)
+  vim.api.nvim_win_set_height(win, opts.height)
   return win
 end
 
@@ -62,6 +65,7 @@ M.run = function(args)
     return nil, "Failed to start terminal command"
   end
 
+  local opts = get_opts()
   if opts.enter_insert == true then
     vim.cmd("startinsert")
   end
