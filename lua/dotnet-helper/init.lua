@@ -59,6 +59,21 @@ function H.add_usercommands()
     nargs = 0,
     desc = "Run dotnet build for project",
   })
+
+  vim.api.nvim_create_user_command("DotnetRun", M.run, {
+    nargs = 0,
+    desc = "Run dotnet project",
+  })
+
+  vim.api.nvim_create_user_command("DotnetStop", M.stop, {
+    nargs = 0,
+    desc = "Stop active job",
+  })
+
+  vim.api.nvim_create_user_command("DotnetClose", M.close, {
+    nargs = 0,
+    desc = "Stop active job and close window",
+  })
 end
 
 ---@class DotnetHelperAutocmdOpts
@@ -137,6 +152,18 @@ end
 
 function M.adjust_ns()
   require("dotnet-helper.ns").adjust_ns()
+end
+
+function M.run()
+  require("dotnet-helper.run").run()
+end
+
+function M.stop()
+  require("dotnet-helper.runner").stop()
+end
+
+function M.close()
+  require("dotnet-helper.runner").close()
 end
 
 return M

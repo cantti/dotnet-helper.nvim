@@ -3,12 +3,17 @@ local plugin = require("dotnet-helper")
 
 local M = {}
 
-local function get_opts()
+local H = {}
+
+H.current_job_id = nil
+H.win = nil
+
+H.get_opts = function()
   return (plugin.opts and plugin.opts.terminal) or {}
 end
 
 ---@return integer|nil
-local function get_shared_window()
+H.get_shared_window = function()
   for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
     local buf = vim.api.nvim_win_get_buf(win)
     if vim.b[buf].dotnet_helper_terminal == true then
@@ -19,9 +24,8 @@ local function get_shared_window()
   return nil
 end
 
----@return integer
-local function ensure_window()
-  local win = get_shared_window()
+H.ensure_window = function()
+  local win = H.get_shared_window()
   if win then
     vim.api.nvim_set_current_win(win)
     vim.wo[win].number = false
@@ -29,14 +33,14 @@ local function ensure_window()
     return win
   end
 
-  local opts = get_opts()
+  local opts = H.get_opts()
   local position = opts.position or "botright"
   vim.cmd(position .. " split")
   win = vim.api.nvim_get_current_win()
   vim.api.nvim_win_set_height(win, opts.height or 14)
   vim.wo[win].number = false
   vim.wo[win].relativenumber = false
-  return win
+  H.win = win
 end
 
 ---@param win integer
@@ -53,39 +57,39 @@ local function create_output_buffer(win, source_win)
   vim.b[buf].dotnet_helper_has_output = false
   vim.b[buf].dotnet_helper_source_win = source_win
 
-  vim.keymap.set("n", "gf", function()
-    local current_line = vim.api.nvim_get_current_line()
-    local file, line_num = current_line:match("(%S+):line%s+(%d+)")
-
-    if file == nil or file == "" then
-      file = vim.fn.expand("<cfile>")
-    else
-      file = file:gsub("[,;%.%)%]]+$", "")
-    end
-
-    if file == nil or file == "" then
-      return
-    end
-
-    if vim.fn.filereadable(file) ~= 1 then
-      utils.notify("File not found: " .. file, vim.log.levels.WARN)
-      return
-    end
-
-    local target_win = vim.b[buf].dotnet_helper_source_win
-    if target_win and vim.api.nvim_win_is_valid(target_win) then
-      vim.api.nvim_set_current_win(target_win)
-    end
-
-    vim.cmd("edit " .. vim.fn.fnameescape(file))
-
-    if line_num then
-      local line = tonumber(line_num)
-      if line and line > 0 then
-        vim.api.nvim_win_set_cursor(0, { line, 0 })
-      end
-    end
-  end, { buffer = buf, silent = true, desc = "Open file under cursor" })
+  -- vim.keymap.set("n", "gf", function()
+  --   local current_line = vim.api.nvim_get_current_line()
+  --   local file, line_num = current_line:match("(%S+):line%s+(%d+)")
+  --
+  --   if file == nil or file == "" then
+  --     file = vim.fn.expand("<cfile>")
+  --   else
+  --     file = file:gsub("[,;%.%)%]]+$", "")
+  --   end
+  --
+  --   if file == nil or file == "" then
+  --     return
+  --   end
+  --
+  --   if vim.fn.filereadable(file) ~= 1 then
+  --     utils.notify("File not found: " .. file, vim.log.levels.WARN)
+  --     return
+  --   end
+  --
+  --   local target_win = vim.b[buf].dotnet_helper_source_win
+  --   if target_win and vim.api.nvim_win_is_valid(target_win) then
+  --     vim.api.nvim_set_current_win(target_win)
+  --   end
+  --
+  --   vim.cmd("edit " .. vim.fn.fnameescape(file))
+  --
+  --   if line_num then
+  --     local line = tonumber(line_num)
+  --     if line and line > 0 then
+  --       vim.api.nvim_win_set_cursor(0, { line, 0 })
+  --     end
+  --   end
+  -- end, { buffer = buf, silent = true, desc = "Open file under cursor" })
 
   vim.api.nvim_win_set_buf(win, buf)
   return buf
@@ -151,18 +155,22 @@ end
 
 ---@param args string[]
 ---@param opts RunnerRunOpts?
----@return boolean|nil
----@return string? err
+---@return boolean?, string?
 M.run = function(args, opts)
   opts = opts or {}
 
+  if H.current_job_id then
+    vim.fn.jobstop(H.current_job_id)
+    vim.fn.jobwait({ H.current_job_id })
+  end
+
   local source_win = vim.api.nvim_get_current_win()
-  local win = ensure_window()
-  local buf = create_output_buffer(win, source_win)
+  H.ensure_window()
+  local buf = create_output_buffer(H.win, source_win)
   local stdout_stash = ""
   local stderr_stash = ""
 
-  local job_id = vim.fn.jobstart(args, {
+  H.current_job_id = vim.fn.jobstart(args, {
     stdout_buffered = false,
     stderr_buffered = false,
     on_stdout = function(_, data)
@@ -191,14 +199,29 @@ M.run = function(args, opts)
           utils.notify(opts.error_message or "Command failed", vim.log.levels.ERROR)
         end
       end)
+      H.current_job_id = nil
     end,
   })
 
-  if job_id <= 0 then
+  if H.current_job_id <= 0 then
     return nil, "Failed to start output command"
   end
 
   return true, nil
+end
+
+M.stop = function()
+  if H.current_job_id then
+    vim.fn.jobstop(H.current_job_id)
+  end
+end
+
+M.close = function()
+  if H.current_job_id then
+    vim.fn.jobstop(H.current_job_id)
+    vim.fn.jobwait({ H.current_job_id })
+  end
+  vim.api.nvim_win_close(H.win, true)
 end
 
 return M
