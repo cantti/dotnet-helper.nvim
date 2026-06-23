@@ -15,11 +15,17 @@ M.run = a.async(function()
     return
   end
 
-  H.extra_args_str = a.input({ prompt = "Additional args: ", default = H.extra_args_str })
+  H.extra_args = a.input({ prompt = "Additional args: ", default = H.extra_args })
+  if H.extra_args == nil then
+    return
+  end
 
   utils.notify("Running " .. fs.relative_path(H.target) .. "...")
-  local args = { "dotnet", "run", "--project", H.target, "--" }
-  vim.list_extend(args, vim.split(H.extra_args, " "))
+  local args = { "dotnet", "run", "--project", H.target }
+  if not utils.is_empty(H.extra_args) then
+    table.insert(args, "--")
+    vim.list_extend(args, vim.split(H.extra_args, "%s+", { trimempty = true }))
+  end
   runner.run(args)
 end)
 

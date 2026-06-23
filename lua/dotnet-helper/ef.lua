@@ -8,18 +8,6 @@ local H = {}
 H.project = nil
 H.startup = nil
 
----@param args string[]
----@param start_msg string
----@param success_msg string
----@param error_msg string
-H.run_action = function(args, start_msg, success_msg, error_msg)
-  utils.notify(start_msg)
-  runner.run(args, {
-    success_message = success_msg,
-    error_message = error_msg,
-  })
-end
-
 H.prompt_project_and_startup = function()
   H.project = utils.prompt_project("Choose project:", H.project)
   if not H.project then
@@ -43,7 +31,11 @@ M.migration_add = function()
     return
   end
   local args = { "dotnet", "ef", "migrations", "add", "-p", H.project, "-s", H.startup, name }
-  H.run_action(args, "Adding migration...", "Migration added", "Migration add failed")
+  utils.notify("Adding migration...")
+  runner.run(args, {
+    success_message = "Migration added",
+    error_message = "Migration add failed",
+  })
 end
 
 H.migration_remove = function()
@@ -51,7 +43,11 @@ H.migration_remove = function()
     return
   end
   local args = { "dotnet", "ef", "migrations", "remove", "--force", "-p", H.project, "-s", H.startup }
-  H.run_action(args, "Removing migration...", "Migration removed", "Migration remove failed")
+  utils.notify("Removing migration...")
+  runner.run(args, {
+    success_message = "Migration removed",
+    error_message = "Migration remove failed",
+  })
 end
 
 H.migration_list = function()
@@ -59,7 +55,11 @@ H.migration_list = function()
     return
   end
   local args = { "dotnet", "ef", "migrations", "list", "-p", H.project, "-s", H.startup }
-  H.run_action(args, "Listing migrations...", "Migration list completed", "Migration list failed")
+  utils.notify("Listing migrations...")
+  runner.run(args, {
+    success_message = "Migration list completed",
+    error_message = "Migration list failed",
+  })
 end
 
 H.has_pending_changes = function()
@@ -67,7 +67,11 @@ H.has_pending_changes = function()
     return
   end
   local args = { "dotnet", "ef", "migrations", "has-pending-model-changes", "-p", H.project, "-s", H.startup }
-  H.run_action(args, "Checking for pending model changes...", "Check completed", "Check failed")
+  utils.notify("Checking for pending model changes...")
+  runner.run(args, {
+    success_message = "Check completed",
+    error_message = "Check failed",
+  })
 end
 
 H.database_update = function()
@@ -75,7 +79,11 @@ H.database_update = function()
     return
   end
   local args = { "dotnet", "ef", "database", "update", "-p", H.project, "-s", H.startup }
-  H.run_action(args, "Updating database...", "Database updated", "Database update failed")
+  utils.notify("Updating database...")
+  runner.run(args, {
+    success_message = "Database updated",
+    error_message = "Database update failed",
+  })
 end
 
 H.database_drop = function()
@@ -95,7 +103,11 @@ H.database_drop = function()
     table.insert(args, "--force")
   end
 
-  H.run_action(args, "Dropping database...", "Database dropped", "Database drop failed")
+  utils.notify("Dropping database...")
+  runner.run(args, {
+    success_message = "Database dropped",
+    error_message = "Database drop failed",
+  })
 end
 
 H.dbcontext_info = function()
@@ -104,7 +116,11 @@ H.dbcontext_info = function()
   end
 
   local args = { "dotnet", "ef", "dbcontext", "info", "-p", H.project, "-s", H.startup }
-  H.run_action(args, "Getting DbContext info...", "DbContext info completed", "DbContext info failed")
+  utils.notify("Getting DbContext info...")
+  runner.run(args, {
+    success_message = "DbContext info completed",
+    error_message = "DbContext info failed",
+  })
 end
 
 H.dbcontext_list = function()
@@ -113,7 +129,11 @@ H.dbcontext_list = function()
   end
 
   local args = { "dotnet", "ef", "dbcontext", "list", "-p", H.project, "-s", H.startup }
-  H.run_action(args, "Listing DbContexts...", "DbContext list completed", "DbContext list failed")
+  utils.notify("Listing DbContexts...")
+  runner.run(args, {
+    success_message = "DbContext list completed",
+    error_message = "DbContext list failed",
+  })
 end
 
 H.migration_script = function()
@@ -153,7 +173,11 @@ H.migration_script = function()
     table.insert(args, "--idempotent")
   end
 
-  H.run_action(args, "Generating migration script...", "Migration script generated", "Migration script failed")
+  utils.notify("Generating migration script...")
+  runner.run(args, {
+    success_message = "Migration script generated",
+    error_message = "Migration script failed",
+  })
 end
 
 M.ef = a.async(function()
