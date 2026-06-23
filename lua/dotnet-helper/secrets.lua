@@ -55,6 +55,15 @@ H.open_secrets_json = function(project)
   end
 
   if not fs.file_exists(secrets_path) then
+    local parent_dir = fs.get_parent_path(secrets_path)
+    if vim.fn.isdirectory(parent_dir) == 0 then
+      local mkdir_ok = vim.fn.mkdir(parent_dir, "p")
+      if mkdir_ok == 0 then
+        utils.notify("failed to create secrets directory: " .. parent_dir, vim.log.levels.WARN)
+        return
+      end
+    end
+
     local buf = vim.api.nvim_create_buf(true, false)
     vim.api.nvim_buf_set_name(buf, secrets_path)
     vim.bo[buf].filetype = "json"
